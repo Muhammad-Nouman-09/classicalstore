@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { submitOrder } from "./actions";
 
 type OrderFormProps = {
   productId: string;
@@ -16,32 +17,25 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const submitOrder = () => {
+  const handleSubmit = () => {
     setMessage(null);
     startTransition(async () => {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          phone,
-          address,
-          productId,
-          quantity,
-        }),
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
-        setMessage(body.error ?? "Something went wrong. Please try again.");
-        return;
+      try {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('phone', phone);
+        formData.append('address', address);
+        formData.append('productId', productId);
+        formData.append('quantity', quantity.toString());
+        await submitOrder(formData);
+        setMessage("Order placed! We'll reach out soon to confirm.");
+        setName("");
+        setPhone("");
+        setAddress("");
+        setQuantity(1);
+      } catch (error) {
+        setMessage((error as Error).message);
       }
-
-      setMessage("Order placed! We’ll reach out soon to confirm.");
-      setName("");
-      setPhone("");
-      setAddress("");
-      setQuantity(1);
     });
   };
 
@@ -117,7 +111,7 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
       </div>
 
       <button
-        onClick={submitOrder}
+        onClick={handleSubmit}
         disabled={isPending}
         className="w-full rounded-md bg-white px-4 py-2 font-semibold text-black transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
       >

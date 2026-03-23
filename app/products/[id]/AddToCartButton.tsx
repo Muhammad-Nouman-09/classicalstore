@@ -35,6 +35,9 @@ export default function AddToCartButton({ product }: { product: Product }) {
 
     window.localStorage.setItem("cart", JSON.stringify(cart));
     setAdded(true);
+
+    // Notify other components in same tab (storage event is cross-tab only)
+    window.dispatchEvent(new CustomEvent("cart:update", { detail: "Added to cart" }));
   };
 
   return (

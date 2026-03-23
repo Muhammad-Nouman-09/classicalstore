@@ -17,9 +17,42 @@ type Product = {
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const demoPattern = /^demo-\d+$/;
 
 async function getProduct(id: string | undefined): Promise<Product | null> {
-  if (!id || !uuidPattern.test(id)) {
+  if (!id) {
+    return null;
+  }
+
+  if (demoPattern.test(id)) {
+    // Handle demo products
+    const demoProducts = [
+      {
+        id: "demo-1",
+        name: "Classical Vinyl",
+        price: 25,
+        image: null,
+        description: "Limited pressing of timeless symphonies.",
+      },
+      {
+        id: "demo-2",
+        name: "Concert Ticket",
+        price: 75,
+        image: null,
+        description: "Front-row experience for your favorite orchestra.",
+      },
+      {
+        id: "demo-3",
+        name: "Merch Bundle",
+        price: 40,
+        image: null,
+        description: "T-shirt, poster, and sticker pack in one bundle.",
+      },
+    ];
+    return demoProducts.find(p => p.id === id) || null;
+  }
+
+  if (!uuidPattern.test(id)) {
     return null;
   }
 
@@ -42,8 +75,7 @@ type PageProps = {
 };
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  const { id } = await params;
-  const product = await getProduct(id);
+  const product = await getProduct(params.id);
 
   if (!product) {
     notFound();
