@@ -65,6 +65,10 @@ export default function Navbar() {
           Products
         </Link>
         
+        <Link href="/admin" className="hover:text-gray-300 transition">
+          Admin
+        </Link>
+        
         <Link 
           href="/cart" 
           className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-lg hover:bg-white/20 transition"
