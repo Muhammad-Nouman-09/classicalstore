@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { submitOrder } from "./actions";
@@ -22,11 +22,11 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
     startTransition(async () => {
       try {
         const formData = new FormData();
-        formData.append('name', name);
-        formData.append('phone', phone);
-        formData.append('address', address);
-        formData.append('productId', productId);
-        formData.append('quantity', quantity.toString());
+        formData.append("name", name);
+        formData.append("phone", phone);
+        formData.append("address", address);
+        formData.append("productId", productId);
+        formData.append("quantity", quantity.toString());
         await submitOrder(formData);
         setMessage("Order placed! We'll reach out soon to confirm.");
         setName("");
@@ -44,81 +44,75 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
   return (
     <div
       id="order-form"
-      className="rounded-lg border border-gray-800 bg-black/40 p-6 space-y-4"
+      className="space-y-4 rounded-lg border border-emerald-100 bg-white/90 p-6 shadow-sm shadow-emerald-50"
     >
       <div>
-        <h2 className="text-2xl font-semibold">Order {productName}</h2>
-        <p className="text-sm text-gray-400">We’ll confirm by phone before shipping.</p>
+        <h2 className="text-2xl font-semibold text-emerald-900">Order {productName}</h2>
+        <p className="text-sm text-emerald-700">We'll confirm by phone before shipping.</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-sm text-emerald-800">
+        <span className="rounded-md bg-emerald-50 px-3 py-2">Unit: ${price.toFixed(2)}</span>
+        <span className="rounded-md bg-emerald-50 px-3 py-2">Total: ${total.toFixed(2)}</span>
       </div>
 
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-gray-200">
+        <label className="block text-sm font-medium text-emerald-800">
           Name
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-md border border-gray-700 bg-black/30 p-2 text-white"
+            className="mt-1 w-full rounded-md border border-emerald-200 bg-white px-3 py-2 text-emerald-900 placeholder-emerald-400 focus:border-emerald-400 focus:outline-none"
             placeholder="Your full name"
           />
         </label>
 
-        <label className="block text-sm font-medium text-gray-200">
+        <label className="block text-sm font-medium text-emerald-800">
           Phone
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="mt-1 w-full rounded-md border border-gray-700 bg-black/30 p-2 text-white"
+            className="mt-1 w-full rounded-md border border-emerald-200 bg-white px-3 py-2 text-emerald-900 placeholder-emerald-400 focus:border-emerald-400 focus:outline-none"
             placeholder="+1 555 123 4567"
           />
         </label>
 
-        <label className="block text-sm font-medium text-gray-200">
+        <label className="block text-sm font-medium text-emerald-800">
           Address
           <textarea
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="mt-1 w-full rounded-md border border-gray-700 bg-black/30 p-2 text-white"
-            rows={3}
-            placeholder="Street, city, postal code"
+            className="mt-1 w-full rounded-md border border-emerald-200 bg-white px-3 py-2 text-emerald-900 placeholder-emerald-400 focus:border-emerald-400 focus:outline-none"
+            placeholder="Street, city, zip"
           />
         </label>
 
-        <label className="block text-sm font-medium text-gray-200">
+        <label className="block text-sm font-medium text-emerald-800">
           Quantity
           <input
             type="number"
             min={1}
             value={quantity}
             onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-            className="mt-1 w-24 rounded-md border border-gray-700 bg-black/30 p-2 text-white"
+            className="mt-1 w-24 rounded-md border border-emerald-200 bg-white px-3 py-2 text-emerald-900 focus:border-emerald-400 focus:outline-none"
           />
         </label>
       </div>
 
-      <div className="rounded-md border border-gray-800 bg-black/30 p-3 text-sm text-gray-200 space-y-1">
-        <div className="flex justify-between">
-          <span>Item</span>
-          <span>{productName}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Unit price</span>
-          <span>${price}</span>
-        </div>
-        <div className="flex justify-between font-semibold">
-          <span>Order total</span>
-          <span>${total}</span>
-        </div>
-      </div>
-
       <button
+        type="button"
         onClick={handleSubmit}
         disabled={isPending}
-        className="w-full rounded-md bg-white px-4 py-2 font-semibold text-black transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-md bg-emerald-600 px-4 py-3 font-semibold text-white shadow hover:bg-emerald-500 disabled:opacity-60"
       >
         {isPending ? "Placing order..." : "Place order"}
       </button>
 
-      {message && <p className="text-sm text-green-400">{message}</p>}
+      {message && (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          {message}
+        </p>
+      )}
     </div>
   );
 }

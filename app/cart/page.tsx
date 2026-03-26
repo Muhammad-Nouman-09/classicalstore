@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -29,9 +29,7 @@ export default function CartPage() {
       return;
     }
 
-    const updated = cart.map((item) =>
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    );
+    const updated = cart.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item));
     setCart(updated);
     localStorage.setItem("cart", JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent("cart:update", { detail: "Cart updated" }));
@@ -56,26 +54,29 @@ export default function CartPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <p className="text-center text-gray-400">Loading cart...</p>
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <p className="text-center text-emerald-700">Loading cart...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      <Link href="/products" className="text-sm text-gray-400 hover:text-white mb-6 inline-block">
-        {"← Back to products"}
+    <div className="mx-auto max-w-6xl px-4 py-10 space-y-6">
+      <Link href="/products" className="text-sm text-emerald-700 hover:text-emerald-500 inline-flex items-center gap-2">
+        <span>←</span> Back to products
       </Link>
 
-      <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+      <div className="flex flex-col gap-2">
+        <p className="text-xs uppercase tracking-[0.3em] text-emerald-600">Cart</p>
+        <h1 className="text-3xl font-bold text-emerald-900">Shopping Cart</h1>
+      </div>
 
       {cart.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-xl text-gray-400 mb-4">Your cart is empty</p>
+        <div className="text-center py-12 rounded-xl border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50">
+          <p className="text-xl text-emerald-800 mb-4">Your cart is empty</p>
           <Link
             href="/products"
-            className="inline-block bg-white text-black px-6 py-2 rounded-md font-semibold hover:bg-gray-100 transition"
+            className="inline-block rounded-md bg-emerald-600 px-6 py-2 font-semibold text-white shadow hover:bg-emerald-500 transition"
           >
             Continue Shopping
           </Link>
@@ -87,40 +88,40 @@ export default function CartPage() {
             {cart.map((item) => (
               <div
                 key={item.id}
-                className="flex gap-4 p-4 border border-gray-800 rounded-lg bg-black/40"
+                className="flex gap-4 p-4 rounded-lg border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50"
               >
                 {/* Product Image */}
-                <div className="w-24 h-24 bg-gray-900 rounded-md flex-shrink-0 flex items-center justify-center">
+                <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-md border border-emerald-100 bg-emerald-50 overflow-hidden">
                   {item.image ? (
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover rounded-md"
+                      className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="text-xs text-gray-500">No image</span>
+                    <span className="text-xs text-emerald-500">No image</span>
                   )}
                 </div>
 
                 {/* Product Details */}
-                <div className="flex-1 flex flex-col justify-between">
+                <div className="flex flex-1 flex-col justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">{item.name}</h3>
-                    <p className="text-gray-400">${item.price.toFixed(2)} each</p>
+                    <h3 className="text-lg font-semibold text-emerald-900">{item.name}</h3>
+                    <p className="text-emerald-700">${item.price.toFixed(2)} each</p>
                   </div>
 
                   {/* Quantity Controls */}
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="px-3 py-1 border border-gray-700 rounded hover:border-white transition"
+                      className="px-3 py-1 rounded border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
                     >
                       −
                     </button>
-                    <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                    <span className="w-8 text-center font-semibold text-emerald-900">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="px-3 py-1 border border-gray-700 rounded hover:border-white transition"
+                      className="px-3 py-1 rounded border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
                     >
                       +
                     </button>
@@ -128,60 +129,49 @@ export default function CartPage() {
                 </div>
 
                 {/* Price & Remove */}
-                <div className="text-right flex flex-col justify-between">
-                  <p className="text-xl font-bold">
+                <div className="flex flex-col items-end justify-between">
+                  <p className="text-lg font-semibold text-emerald-900">
                     ${(item.price * item.quantity).toFixed(2)}
                   </p>
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="text-red-400 hover:text-red-300 transition text-sm"
+                    className="text-sm text-red-700 hover:text-red-600"
                   >
                     Remove
                   </button>
                 </div>
               </div>
             ))}
-
-            <button
-              onClick={clearCart}
-              className="w-full mt-4 px-4 py-2 border border-red-600 text-red-400 rounded-md hover:bg-red-600/10 transition"
-            >
-              Clear Cart
-            </button>
           </div>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="p-6 border border-gray-800 rounded-lg bg-black/40 space-y-4 sticky top-20">
-              <h2 className="text-xl font-bold">Order Summary</h2>
-
-              <div className="space-y-2 border-b border-gray-700 pb-4">
-                <div className="flex justify-between text-gray-400">
-                  <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-gray-400">
-                  <span>Tax (10%)</span>
-                  <span>${tax.toFixed(2)}</span>
-                </div>
+          {/* Summary */}
+          <div className="space-y-4 rounded-lg border border-emerald-100 bg-white/90 p-6 shadow-sm shadow-emerald-50">
+            <h2 className="text-2xl font-semibold text-emerald-900">Summary</h2>
+            <div className="space-y-2 text-sm text-emerald-800">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
-
-              <div className="flex justify-between text-xl font-bold">
+              <div className="flex justify-between">
+                <span>Tax (10%)</span>
+                <span>${tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-base font-semibold text-emerald-900">
                 <span>Total</span>
                 <span>${total.toFixed(2)}</span>
               </div>
-
-              <button className="w-full bg-white text-black py-3 rounded-md font-semibold hover:bg-gray-100 transition">
-                Proceed to Checkout
-              </button>
-
-              <Link
-                href="/products"
-                className="block text-center text-gray-400 hover:text-white text-sm transition"
-              >
-                Continue Shopping
-              </Link>
             </div>
+
+            <button className="w-full rounded-md bg-emerald-600 py-3 font-semibold text-white shadow hover:bg-emerald-500 transition">
+              Checkout
+            </button>
+
+            <button
+              onClick={clearCart}
+              className="w-full rounded-md border border-emerald-200 py-3 font-semibold text-emerald-800 hover:bg-emerald-50 transition"
+            >
+              Clear Cart
+            </button>
           </div>
         </div>
       )}

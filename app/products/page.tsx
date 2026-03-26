@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import ClientProductCard from "@/components/ClientProductCard";
 
@@ -29,11 +28,12 @@ export default async function ProductsPage() {
   const products = await getProducts();
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Products</h1>
-        <p className="text-sm text-gray-400">
-          Browse everything we have in stock. Prices shown in your store currency.
+    <div className="mx-auto max-w-6xl px-4 py-12 space-y-8">
+      <div className="space-y-2 text-center">
+        <p className="text-xs uppercase tracking-[0.3em] text-emerald-600">Catalog</p>
+        <h1 className="text-4xl font-bold text-emerald-900">Browse our products</h1>
+        <p className="text-sm text-emerald-700">
+          Live inventory from Supabase. Prices shown in your store currency.
         </p>
       </div>
 
@@ -44,7 +44,7 @@ export default async function ProductsPage() {
       </div>
 
       {products.length === 0 && (
-        <p className="text-center text-gray-500 py-8">
+        <p className="rounded-lg border border-emerald-100 bg-white/80 p-6 text-center text-emerald-800">
           No products available. Add products in Supabase to display them here.
         </p>
       )}

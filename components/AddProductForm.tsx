@@ -78,10 +78,10 @@ export default function AddProductForm() {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6">
+    <div className="rounded-lg border border-emerald-100 bg-white p-6 shadow-sm shadow-emerald-50">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Add New Product</h2>
-        <p className="text-gray-400 text-sm">
+        <h2 className="text-xl font-semibold mb-2 text-emerald-900">Add New Product</h2>
+        <p className="text-emerald-700 text-sm">
           Fill in the details below to add a new product to your store.
         </p>
       </div>
@@ -90,8 +90,8 @@ export default function AddProductForm() {
         <div
           className={`mb-6 p-4 rounded-md ${
             message.type === "success"
-              ? "bg-green-600 text-white"
-              : "bg-red-600 text-white"
+              ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
+              : "bg-red-50 text-red-800 border border-red-200"
           }`}
         >
           {message.text}
@@ -100,7 +100,7 @@ export default function AddProductForm() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="name" className="block text-sm font-medium text-emerald-800 mb-2">
             Product Name *
           </label>
           <input
@@ -110,13 +110,13 @@ export default function AddProductForm() {
             value={formData.name}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-md text-emerald-900 placeholder-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
             placeholder="Enter product name"
           />
         </div>
 
         <div>
-          <label htmlFor="price" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="price" className="block text-sm font-medium text-emerald-800 mb-2">
             Price (USD) *
           </label>
           <input
@@ -128,13 +128,13 @@ export default function AddProductForm() {
             required
             min="0"
             step="0.01"
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-md text-emerald-900 placeholder-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
             placeholder="0.00"
           />
         </div>
 
         <div>
-          <label htmlFor="image" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="image" className="block text-sm font-medium text-emerald-800 mb-2">
             Image URL
           </label>
           <input
@@ -143,13 +143,13 @@ export default function AddProductForm() {
             name="image"
             value={formData.image}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-md text-emerald-900 placeholder-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
             placeholder="https://example.com/image.jpg"
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="description" className="block text-sm font-medium text-emerald-800 mb-2">
             Description
           </label>
           <textarea
@@ -158,7 +158,7 @@ export default function AddProductForm() {
             value={formData.description}
             onChange={handleInputChange}
             rows={4}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+            className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-md text-emerald-900 placeholder-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent resize-vertical"
             placeholder="Enter product description"
           />
         </div>
@@ -167,7 +167,7 @@ export default function AddProductForm() {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Adding Product..." : "Add Product"}
           </button>

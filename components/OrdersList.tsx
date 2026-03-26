@@ -21,9 +21,10 @@ type OrdersListProps = {
   orders: Order[];
   loading: boolean;
   onStatusUpdate: (orderId: string, status: string) => void;
+  updatingOrderId: string | null;
 };
 
-export default function OrdersList({ orders, loading, onStatusUpdate }: OrdersListProps) {
+export default function OrdersList({ orders, loading, onStatusUpdate, updatingOrderId }: OrdersListProps) {
   const [filter, setFilter] = useState<string>("all");
 
   const filteredOrders = orders.filter((order) => {
@@ -34,17 +35,17 @@ export default function OrdersList({ orders, loading, onStatusUpdate }: OrdersLi
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-500";
+        return "bg-amber-400 text-amber-900";
       case "processing":
-        return "bg-blue-500";
+        return "bg-blue-100 text-blue-800";
       case "shipped":
-        return "bg-green-500";
+        return "bg-emerald-100 text-emerald-800";
       case "delivered":
-        return "bg-gray-500";
+        return "bg-slate-200 text-slate-800";
       case "cancelled":
-        return "bg-red-500";
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-500";
+        return "bg-slate-200 text-slate-800";
     }
   };
 
@@ -54,12 +55,12 @@ export default function OrdersList({ orders, loading, onStatusUpdate }: OrdersLi
 
   if (loading) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="rounded-lg border border-emerald-100 bg-white p-6 shadow-sm shadow-emerald-50">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-700 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-emerald-100 rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-700 rounded"></div>
+              <div key={i} className="h-16 bg-emerald-50 rounded border border-emerald-100"></div>
             ))}
           </div>
         </div>
@@ -68,14 +69,14 @@ export default function OrdersList({ orders, loading, onStatusUpdate }: OrdersLi
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg overflow-hidden">
-      <div className="p-6 border-b border-gray-700">
+    <div className="rounded-lg border border-emerald-100 bg-white overflow-hidden shadow-sm shadow-emerald-50">
+      <div className="p-6 border-b border-emerald-100">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Orders</h2>
+          <h2 className="text-xl font-semibold text-emerald-900">Orders</h2>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="bg-gray-700 text-white px-3 py-2 rounded-md text-sm"
+            className="bg-emerald-50 text-emerald-900 px-3 py-2 rounded-md text-sm border border-emerald-200"
           >
             <option value="all">All Orders</option>
             <option value="pending">Pending</option>
@@ -89,76 +90,99 @@ export default function OrdersList({ orders, loading, onStatusUpdate }: OrdersLi
 
       <div className="overflow-x-auto">
         {filteredOrders.length === 0 ? (
-          <div className="p-6 text-center text-gray-400">
-            No orders found.
-          </div>
+          <div className="p-6 text-center text-emerald-700">No orders found.</div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-700">
+            <thead className="bg-emerald-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-800 uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-800 uppercase tracking-wider">
                   Product
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-800 uppercase tracking-wider">
                   Quantity
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-800 uppercase tracking-wider">
                   Total
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-800 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-800 uppercase tracking-wider">
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-emerald-800 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
+            <tbody className="divide-y divide-emerald-100">
               {filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-750">
+                <tr key={order.id} className="hover:bg-emerald-50/60">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-white">
+                      <div className="text-sm font-medium text-emerald-900">
                         {order.name}
                       </div>
-                      <div className="text-sm text-gray-400">{order.phone}</div>
-                      <div className="text-sm text-gray-400">{order.address}</div>
+                      <div className="text-sm text-emerald-700">{order.phone}</div>
+                      <div className="text-sm text-emerald-700">{order.address}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-white">
+                    <div className="text-sm text-emerald-900">
                       {order.products?.name || "Unknown Product"}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-900">
                     {order.quantity}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-900">
                     ${order.products ? (order.products.price * order.quantity).toFixed(2) : "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white ${getStatusColor(
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
                         order.status
                       )}`}
                     >
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-700">
                     {formatDate(order.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <div className="mb-2 flex flex-wrap gap-1">
+                      {[
+                        { value: "pending", label: "Pending" },
+                        { value: "processing", label: "Processing" },
+                        { value: "shipped", label: "Shipped" },
+                        { value: "delivered", label: "Delivered" },
+                        { value: "cancelled", label: "Cancelled" },
+                      ].map((item) => (
+                        <button
+                          type="button"
+                          key={`${order.id}-${item.value}`}
+                          onClick={() => onStatusUpdate(order.id, item.value)}
+                          disabled={updatingOrderId === order.id}
+                          className={`px-2 py-1 text-[10px] rounded-lg font-semibold uppercase transition ${
+                            updatingOrderId === order.id
+                              ? "cursor-not-allowed opacity-50"
+                            : order.status === item.value
+                              ? "bg-emerald-600 text-white"
+                              : "bg-emerald-50 text-emerald-800 border border-emerald-100 hover:bg-emerald-100"
+                          }`}
+                        >
+                          {updatingOrderId === order.id && order.status !== item.value ? "..." : item.label}
+                        </button>
+                      ))}
+                    </div>
                     <select
                       value={order.status}
                       onChange={(e) => onStatusUpdate(order.id, e.target.value)}
-                      className="bg-gray-700 text-white px-2 py-1 rounded text-xs"
+                      className="bg-emerald-50 text-emerald-900 px-2 py-1 rounded text-xs border border-emerald-200"
                     >
                       <option value="pending">Pending</option>
                       <option value="processing">Processing</option>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import OrderForm from "./OrderForm";
@@ -50,14 +50,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-10 space-y-10">
-      <Link href="/products" className="text-sm text-gray-400 hover:text-white">
-        {"<- Back to products"}
+    <div className="mx-auto max-w-5xl px-4 py-10 space-y-10">
+      <Link href="/products" className="text-sm text-emerald-700 hover:text-emerald-500 inline-flex items-center gap-2">
+        <span>←</span> Back to products
       </Link>
 
       <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr] items-start">
-        <div className="rounded-lg border border-gray-800 bg-black/40 p-4">
-          <div className="aspect-[4/3] overflow-hidden rounded-md bg-gray-900">
+        <div className="rounded-lg border border-emerald-100 bg-white/90 p-4 shadow-sm shadow-emerald-50">
+          <div className="aspect-[4/3] overflow-hidden rounded-md border border-emerald-100 bg-emerald-50">
             {product.image ? (
               <img
                 src={product.image}
@@ -65,32 +65,28 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-gray-500">
+              <div className="flex h-full items-center justify-center text-sm text-emerald-500">
                 No image
               </div>
             )}
           </div>
           <div className="mt-4 space-y-2">
-            <h1 className="text-3xl font-bold">{product.name}</h1>
-            <p className="text-xl font-semibold">${product.price}</p>
-            <p className="text-gray-300 leading-relaxed">{product.description}</p>
-            <div className="flex gap-3 pt-2">
+            <h1 className="text-3xl font-bold text-emerald-900">{product.name}</h1>
+            <p className="text-xl font-semibold text-emerald-800">${product.price}</p>
+            <p className="text-emerald-800 leading-relaxed">{product.description}</p>
+            <div className="flex flex-wrap gap-3 pt-2">
               <AddToCartButton product={product} />
               <a
                 href="#order-form"
-                className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-gray-100"
+                className="inline-flex items-center justify-center rounded-md border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 transition"
               >
-                Buy now
+                Order by phone
               </a>
             </div>
           </div>
         </div>
 
-        <OrderForm
-          productId={product.id}
-          productName={product.name}
-          price={product.price}
-        />
+        <OrderForm productId={product.id} productName={product.name} price={product.price} />
       </div>
     </div>
   );

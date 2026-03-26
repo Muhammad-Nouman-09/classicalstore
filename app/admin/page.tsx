@@ -33,6 +33,8 @@ export default function AdminPage() {
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [adminToast, setAdminToast] = useState<string | null>(null);
 
   useEffect(() => {
     // Test Supabase connection first
@@ -173,6 +175,8 @@ export default function AdminPage() {
   };
 
   const updateOrderStatus = async (orderId: string, status: string) => {
+    setUpdatingOrderId(orderId);
+
     try {
       const response = await fetch(`/api/orders/${orderId}`, {
         method: "PATCH",
@@ -187,25 +191,54 @@ export default function AdminPage() {
         throw new Error(errorData.error || "Failed to update order status.");
       }
 
-      // Orders will be refreshed via real-time subscription
+      setAdminToast(`Order ${orderId.slice(0, 8)} status set to ${status}.`);
+      setTimeout(() => setAdminToast(null), 3000);
+
+      // refresh orders list after status change for immediate feedback
+      await fetchOrders();
     } catch (error) {
       console.error("Error updating order status:", error);
-      // You could add a toast notification here for errors
+      setAdminToast("Unable to update order status. See console for details.");
+      setTimeout(() => setAdminToast(null), 5000);
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-emerald-50 text-emerald-900">
+      <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="mb-8">
+          <p className="text-xs uppercase tracking-[0.3em] text-emerald-600">Admin</p>
           <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
-          <p className="text-gray-400">Manage orders and products</p>
+          <p className="text-emerald-800">Manage orders and products</p>
+        </div>
+
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="p-4 rounded-xl border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50">
+            <p className="text-xs text-emerald-700 uppercase tracking-wide">Total Orders</p>
+            <p className="text-2xl font-bold">{orders.length}</p>
+          </div>
+          <div className="p-4 rounded-xl border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50">
+            <p className="text-xs text-emerald-700 uppercase tracking-wide">New Orders</p>
+            <p className="text-2xl font-bold">{newOrdersCount}</p>
+          </div>
+          <div className="p-4 rounded-xl border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50">
+            <p className="text-xs text-emerald-700 uppercase tracking-wide">Pending</p>
+            <p className="text-2xl font-bold">{orders.filter((o) => o.status === "pending").length}</p>
+          </div>
         </div>
 
         <RealTimeOrdersNotification />
 
+        {adminToast && (
+          <div className="mb-4 p-4 rounded-lg bg-emerald-600 text-white shadow-md">
+            {adminToast}
+          </div>
+        )}
+
         {connectionError && (
-          <div className="mb-6 bg-red-600 text-white p-4 rounded-lg">
+          <div className="mb-6 bg-red-50 text-red-800 border border-red-200 p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
@@ -215,7 +248,7 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <p className="font-semibold">Connection Error</p>
-                  <p className="text-sm text-red-100">{connectionError}</p>
+                  <p className="text-sm text-red-700">{connectionError}</p>
                 </div>
               </div>
               <button
@@ -224,7 +257,7 @@ export default function AdminPage() {
                   setLoading(true);
                   fetchOrders();
                 }}
-                className="px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
               >
                 Retry
               </button>
@@ -233,7 +266,7 @@ export default function AdminPage() {
         )}
 
         {/* Tab Navigation */}
-        <div className="flex space-x-1 mb-6 bg-gray-800 p-1 rounded-lg">
+        <div className="flex space-x-1 mb-6 bg-emerald-50 p-1 rounded-lg border border-emerald-100">
           <button
             onClick={() => {
               setActiveTab("orders");
@@ -241,8 +274,8 @@ export default function AdminPage() {
             }}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
               activeTab === "orders"
-                ? "bg-blue-600 text-white"
-                : "text-gray-400 hover:text-white hover:bg-gray-700"
+                ? "bg-emerald-600 text-white"
+                : "text-emerald-700 hover:bg-emerald-100"
             }`}
           >
             <div className="inline-flex items-center gap-2">
@@ -258,8 +291,8 @@ export default function AdminPage() {
             onClick={() => setActiveTab("products")}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
               activeTab === "products"
-                ? "bg-blue-600 text-white"
-                : "text-gray-400 hover:text-white hover:bg-gray-700"
+                ? "bg-emerald-600 text-white"
+                : "text-emerald-700 hover:bg-emerald-100"
             }`}
           >
             Add Product
@@ -272,6 +305,7 @@ export default function AdminPage() {
             orders={orders}
             loading={loading}
             onStatusUpdate={updateOrderStatus}
+            updatingOrderId={updatingOrderId}
           />
         )}
 

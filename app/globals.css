@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #e7e4e4;
+  --foreground: #ffffff;
   --font-geist-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-geist-mono: "Cascadia Code", "Consolas", "Courier New", monospace;
 }
@@ -16,7 +16,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #ffffff;
     --foreground: #ededed;
   }
 }
