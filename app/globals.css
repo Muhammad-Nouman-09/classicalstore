@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #e7e4e4;
-  --foreground: #ffffff;
-  --font-geist-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --accent: #ec4899;
+  --font-geist-sans: "Inter var", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-geist-mono: "Cascadia Code", "Consolas", "Courier New", monospace;
 }
 
@@ -14,15 +15,61 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans);
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(236, 72, 153, 0.15);
+  color: #0f172a;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  transition: all 150ms ease;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+}
+
+.icon-button:hover {
+  transform: translateY(-1px);
+  border-color: #f472b6;
+  color: #ec4899;
+}
+
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: 9999px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
