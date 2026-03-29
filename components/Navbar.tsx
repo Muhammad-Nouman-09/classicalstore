@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 type CartItem = {
@@ -20,6 +21,8 @@ const navLinks = [
   { href: "#categories", label: "Categories" },
   { href: "#best-sellers", label: "Sale" },
 ];
+
+const ADMIN_EMAIL = "mnouman.developer@gmail.com";
 
 function SearchIcon() {
   return (
@@ -54,6 +57,8 @@ export default function Navbar() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [newAdminOrders, setNewAdminOrders] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountHref, setAccountHref] = useState("/auth");
+  const [authUser, setAuthUser] = useState<User | null>(null);
 
   useEffect(() => {
     const updateCartInfo = () => {
@@ -96,14 +101,47 @@ export default function Navbar() {
       })
       .subscribe();
 
+    const syncAccountLink = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setAuthUser(session?.user ?? null);
+      setAccountHref(session?.user ? "/profile" : "/auth");
+    };
+
+    void syncAccountLink();
+
+    const {
+      data: { subscription: authSubscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthUser(session?.user ?? null);
+      setAccountHref(session?.user ? "/profile" : "/auth");
+    });
+
     return () => {
       window.removeEventListener("storage", onCartChange);
       window.removeEventListener("cart:update", onCartChange);
       supabase.removeChannel(supabaseChannel);
+      authSubscription.unsubscribe();
     };
   }, []);
 
   const closeMenu = () => setMenuOpen(false);
+  const profileBadge = authUser?.email?.trim()?.charAt(0)?.toUpperCase() ?? "P";
+  const isAdmin = authUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+  const AccountButton = (
+    <Link href={accountHref} className="icon-button text-[var(--foreground)]" aria-label="Account" onClick={closeMenu}>
+      {authUser ? (
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--foreground)] text-xs font-semibold text-white">
+          {profileBadge}
+        </span>
+      ) : (
+        <UserIcon />
+      )}
+    </Link>
+  );
 
   const CartButton = (
     <Link
@@ -175,25 +213,25 @@ export default function Navbar() {
           <button className="icon-button text-[var(--foreground)]" aria-label="Search">
             <SearchIcon />
           </button>
-          <button className="icon-button text-[var(--foreground)]" aria-label="Account">
-            <UserIcon />
-          </button>
+          {AccountButton}
           {CartButton}
-          <Link
-            href="/admin"
-            className="relative text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)] transition hover:text-[var(--foreground)]"
-            onClick={() => {
-              setNewAdminOrders(0);
-              closeMenu();
-            }}
-          >
-            Admin
-            {newAdminOrders > 0 && (
-              <span className="absolute -right-3 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-bold text-white">
-                {newAdminOrders}
-              </span>
-            )}
-          </Link>
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              className="relative text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)] transition hover:text-[var(--foreground)]"
+              onClick={() => {
+                setNewAdminOrders(0);
+                closeMenu();
+              }}
+            >
+              Admin
+              {newAdminOrders > 0 && (
+                <span className="absolute -right-3 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-bold text-white">
+                  {newAdminOrders}
+                </span>
+              )}
+            </Link>
+          ) : null}
         </div>
       </div>
 
@@ -218,23 +256,23 @@ export default function Navbar() {
             <button className="icon-button text-[var(--foreground)]" aria-label="Search" onClick={closeMenu}>
               <SearchIcon />
             </button>
-            <button className="icon-button text-[var(--foreground)]" aria-label="Account" onClick={closeMenu}>
-              <UserIcon />
-            </button>
+            {AccountButton}
             {CartButton}
           </div>
 
-          <Link
-            href="/admin"
-            className="pt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]"
-            onClick={() => {
-              setNewAdminOrders(0);
-              closeMenu();
-            }}
-          >
-            Admin
-            {newAdminOrders > 0 ? ` (${newAdminOrders})` : ""}
-          </Link>
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              className="pt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]"
+              onClick={() => {
+                setNewAdminOrders(0);
+                closeMenu();
+              }}
+            >
+              Admin
+              {newAdminOrders > 0 ? ` (${newAdminOrders})` : ""}
+            </Link>
+          ) : null}
         </div>
       </div>
 

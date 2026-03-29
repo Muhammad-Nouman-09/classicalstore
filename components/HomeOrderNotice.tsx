@@ -1,25 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function HomeOrderNotice() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [visible, setVisible] = useState(searchParams.get("order") === "success");
+  const orderStatus = searchParams.get("order");
+  const visible = orderStatus === "success";
 
   useEffect(() => {
-    const orderStatus = searchParams.get("order");
-    setVisible(orderStatus === "success");
-
     if (orderStatus !== "success") {
       return;
     }
 
     const timeout = window.setTimeout(() => {
-      setVisible(false);
-
       const params = new URLSearchParams(searchParams.toString());
       params.delete("order");
       const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
@@ -27,7 +23,7 @@ export default function HomeOrderNotice() {
     }, 2000);
 
     return () => window.clearTimeout(timeout);
-  }, [pathname, router, searchParams]);
+  }, [orderStatus, pathname, router, searchParams]);
 
   if (!visible) {
     return null;
