@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type CartItem = {
@@ -11,9 +12,21 @@ type CartItem = {
   quantity: number;
 };
 
+function formatPrice(value: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+}
+
 export default function CartPage() {
+  const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [customer, setCustomer] = useState({
+    name: "",
+    phone: "",
+    address: "",
+  });
 
   useEffect(() => {
     const cartData = localStorage.getItem("cart");
@@ -23,6 +36,12 @@ export default function CartPage() {
     setIsLoading(false);
   }, []);
 
+  const syncCart = (updated: CartItem[], message: string) => {
+    setCart(updated);
+    localStorage.setItem("cart", JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent("cart:update", { detail: message }));
+  };
+
   const updateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity < 1) {
       removeItem(id);
@@ -30,9 +49,7 @@ export default function CartPage() {
     }
 
     const updated = cart.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item));
-    setCart(updated);
-    localStorage.setItem("cart", JSON.stringify(updated));
-    window.dispatchEvent(new CustomEvent("cart:update", { detail: "Cart updated" }));
+    syncCart(updated, "Cart updated");
   };
 
   const removeItem = (id: string) => {
@@ -48,132 +65,259 @@ export default function CartPage() {
     window.dispatchEvent(new CustomEvent("cart:update", { detail: "Cart cleared" }));
   };
 
+  const handleCheckout = async () => {
+    if (!customer.name.trim() || !customer.phone.trim() || !customer.address.trim()) {
+      setCheckoutError("Please fill in your name, phone, and address before checkout.");
+      return;
+    }
+
+    if (cart.length === 0) {
+      setCheckoutError("Your cart is empty.");
+      return;
+    }
+
+    setCheckoutError(null);
+    setCheckoutLoading(true);
+
+    try {
+      for (const item of cart) {
+        const response = await fetch("/api/orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: customer.name.trim(),
+            phone: customer.phone.trim(),
+            address: customer.address.trim(),
+            productId: item.id,
+            quantity: item.quantity,
+          }),
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || "Failed to place order.");
+        }
+      }
+
+      clearCart();
+      router.push("/?order=success");
+      router.refresh();
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : "Checkout failed.");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.1; // 10% tax
-  const total = subtotal + tax;
+  const shipping = subtotal > 50 ? 0 : cart.length > 0 ? 8 : 0;
+  const tax = subtotal * 0.1;
+  const total = subtotal + shipping + tax;
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-10">
-        <p className="text-center text-emerald-700">Loading cart...</p>
+      <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
+        <div className="rounded-[2rem] border border-[var(--border)] bg-white p-10 text-center text-[var(--muted)] shadow-[0_18px_44px_rgba(17,17,17,0.05)]">
+          Loading cart...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 space-y-6">
-      <Link href="/products" className="text-sm text-emerald-700 hover:text-emerald-500 inline-flex items-center gap-2">
-        <span>←</span> Back to products
-      </Link>
-
-      <div className="flex flex-col gap-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-emerald-600">Cart</p>
-        <h1 className="text-3xl font-bold text-emerald-900">Shopping Cart</h1>
-      </div>
+    <div className="mx-auto max-w-7xl px-4 py-10 md:px-6">
+      <section className="rounded-[2.25rem] border border-[var(--border)] bg-[linear-gradient(135deg,rgba(244,239,229,0.95),rgba(255,255,255,0.96))] px-6 py-10 shadow-[0_18px_44px_rgba(17,17,17,0.05)]">
+        <Link
+          href="/products"
+          className="inline-flex rounded-full border border-[var(--border-strong)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--foreground)]"
+        >
+          Back to products
+        </Link>
+        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Cart</p>
+            <h1 className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">Your shopping bag</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
+              Review your products, complete the checkout form, and after your order is placed we&apos;ll take you back to the homepage.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-3xl border border-[var(--border)] bg-white px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Items</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{cart.length}</p>
+            </div>
+            <div className="rounded-3xl border border-[var(--border)] bg-white px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Subtotal</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{formatPrice(subtotal)}</p>
+            </div>
+            <div className="rounded-3xl border border-[var(--border)] bg-white px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Delivery</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{shipping === 0 ? "Free" : formatPrice(shipping)}</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {cart.length === 0 ? (
-        <div className="text-center py-12 rounded-xl border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50">
-          <p className="text-xl text-emerald-800 mb-4">Your cart is empty</p>
+        <section className="mt-8 rounded-[2rem] border border-[var(--border)] bg-white px-6 py-14 text-center shadow-[0_18px_44px_rgba(17,17,17,0.05)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Nothing here yet</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">Your cart is empty</h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[var(--muted)]">
+            Start with featured fashion, shoes, accessories, or skincare and your selections will appear here with a cleaner ecommerce summary.
+          </p>
           <Link
             href="/products"
-            className="inline-block rounded-md bg-emerald-600 px-6 py-2 font-semibold text-white shadow hover:bg-emerald-500 transition"
+            className="mt-6 inline-flex rounded-full bg-[var(--foreground)] px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)]"
           >
-            Continue Shopping
+            Continue shopping
           </Link>
-        </div>
+        </section>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+        <section className="mt-8 grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="space-y-4">
             {cart.map((item) => (
-              <div
+              <article
                 key={item.id}
-                className="flex gap-4 p-4 rounded-lg border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50"
+                className="grid gap-5 rounded-[2rem] border border-[var(--border)] bg-white p-5 shadow-[0_18px_44px_rgba(17,17,17,0.05)] sm:grid-cols-[120px_1fr_auto]"
               >
-                {/* Product Image */}
-                <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-md border border-emerald-100 bg-emerald-50 overflow-hidden">
+                <div className="overflow-hidden rounded-[1.5rem] bg-[var(--card-tint)]">
                   {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={item.image} alt={item.name} className="h-32 w-full object-cover sm:h-full" />
                   ) : (
-                    <span className="text-xs text-emerald-500">No image</span>
+                    <div className="flex h-32 items-center justify-center text-sm text-[var(--muted)]">No image</div>
                   )}
                 </div>
 
-                {/* Product Details */}
-                <div className="flex flex-1 flex-col justify-between">
+                <div className="flex flex-col justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-emerald-900">{item.name}</h3>
-                    <p className="text-emerald-700">${item.price.toFixed(2)} each</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Cart item</p>
+                    <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">{item.name}</h3>
+                    <p className="mt-2 text-sm text-[var(--muted)]">Unit price: {formatPrice(item.price)}</p>
                   </div>
 
-                  {/* Quantity Controls */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="inline-flex items-center rounded-full border border-[var(--border-strong)] bg-[var(--card-tint)] p-1">
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-semibold text-[var(--foreground)]"
+                      >
+                        -
+                      </button>
+                      <span className="min-w-12 px-4 text-center text-sm font-semibold text-[var(--foreground)]">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-semibold text-[var(--foreground)]"
+                      >
+                        +
+                      </button>
+                    </div>
+
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="px-3 py-1 rounded border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+                      onClick={() => removeItem(item.id)}
+                      className="rounded-full border border-[var(--border-strong)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--foreground)]"
                     >
-                      −
-                    </button>
-                    <span className="w-8 text-center font-semibold text-emerald-900">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="px-3 py-1 rounded border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
-                    >
-                      +
+                      Remove
                     </button>
                   </div>
                 </div>
 
-                {/* Price & Remove */}
-                <div className="flex flex-col items-end justify-between">
-                  <p className="text-lg font-semibold text-emerald-900">
-                    ${(item.price * item.quantity).toFixed(2)}
+                <div className="flex flex-col items-start justify-between gap-3 sm:items-end">
+                  <p className="rounded-full bg-[var(--card-tint)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                    In stock
                   </p>
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="text-sm text-red-700 hover:text-red-600"
-                  >
-                    Remove
-                  </button>
+                  <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
+                    {formatPrice(item.price * item.quantity)}
+                  </p>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
 
-          {/* Summary */}
-          <div className="space-y-4 rounded-lg border border-emerald-100 bg-white/90 p-6 shadow-sm shadow-emerald-50">
-            <h2 className="text-2xl font-semibold text-emerald-900">Summary</h2>
-            <div className="space-y-2 text-sm text-emerald-800">
+          <aside className="h-fit rounded-[2rem] border border-[var(--border)] bg-white p-6 shadow-[0_18px_44px_rgba(17,17,17,0.05)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Checkout</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">Complete your order</h2>
+
+            <div className="mt-6 space-y-4">
+              <label className="block text-sm font-semibold text-[var(--foreground)]">
+                Name
+                <input
+                  value={customer.name}
+                  onChange={(e) => setCustomer((current) => ({ ...current, name: e.target.value }))}
+                  className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
+                  placeholder="Your full name"
+                />
+              </label>
+
+              <label className="block text-sm font-semibold text-[var(--foreground)]">
+                Phone
+                <input
+                  value={customer.phone}
+                  onChange={(e) => setCustomer((current) => ({ ...current, phone: e.target.value }))}
+                  className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
+                  placeholder="+1 555 123 4567"
+                />
+              </label>
+
+              <label className="block text-sm font-semibold text-[var(--foreground)]">
+                Address
+                <textarea
+                  value={customer.address}
+                  onChange={(e) => setCustomer((current) => ({ ...current, address: e.target.value }))}
+                  className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
+                  placeholder="Street, city, zip"
+                  rows={4}
+                />
+              </label>
+            </div>
+
+            <div className="mt-6 space-y-4 text-sm text-[var(--muted)]">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span className="font-semibold text-[var(--foreground)]">{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Tax (10%)</span>
-                <span>${tax.toFixed(2)}</span>
+                <span>Shipping</span>
+                <span className="font-semibold text-[var(--foreground)]">{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
               </div>
-              <div className="flex justify-between text-base font-semibold text-emerald-900">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span className="font-semibold text-[var(--foreground)]">{formatPrice(tax)}</span>
+              </div>
+              <div className="border-t border-[var(--border)] pt-4 text-base font-semibold text-[var(--foreground)]">
+                <div className="flex justify-between">
+                  <span>Total</span>
+                  <span>{formatPrice(total)}</span>
+                </div>
               </div>
             </div>
 
-            <button className="w-full rounded-md bg-emerald-600 py-3 font-semibold text-white shadow hover:bg-emerald-500 transition">
-              Checkout
-            </button>
+            <div className="mt-6 space-y-3">
+              <button
+                onClick={handleCheckout}
+                disabled={checkoutLoading}
+                className="w-full rounded-full bg-[var(--foreground)] py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {checkoutLoading ? "Placing order..." : "Checkout"}
+              </button>
+              <button
+                onClick={clearCart}
+                className="w-full rounded-full border border-[var(--border-strong)] py-3 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--foreground)]"
+              >
+                Clear cart
+              </button>
+            </div>
 
-            <button
-              onClick={clearCart}
-              className="w-full rounded-md border border-emerald-200 py-3 font-semibold text-emerald-800 hover:bg-emerald-50 transition"
-            >
-              Clear Cart
-            </button>
-          </div>
-        </div>
+            {checkoutError && (
+              <p className="mt-4 rounded-[1rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{checkoutError}</p>
+            )}
+
+            <div className="mt-6 rounded-[1.5rem] bg-[var(--card-tint)] p-4 text-sm leading-6 text-[var(--muted)]">
+              Free delivery unlocks at $50. After checkout, the cart clears and you return to the homepage with a success state.
+            </div>
+          </aside>
+        </section>
       )}
     </div>
   );

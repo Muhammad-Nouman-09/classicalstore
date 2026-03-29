@@ -25,31 +25,31 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
   }
 
   if (demoPattern.test(id)) {
-    // Handle demo products
     const demoProducts = [
       {
         id: "demo-1",
-        name: "Classical Vinyl",
-        price: 25,
+        name: "Classical Linen Set",
+        price: 85,
         image: null,
-        description: "Limited pressing of timeless symphonies.",
+        description: "Relaxed tailoring designed for clean, all-day styling.",
       },
       {
         id: "demo-2",
-        name: "Concert Ticket",
-        price: 75,
+        name: "Signature Beauty Edit",
+        price: 64,
         image: null,
-        description: "Front-row experience for your favorite orchestra.",
+        description: "Everyday beauty picks curated for glow and ease.",
       },
       {
         id: "demo-3",
-        name: "Merch Bundle",
-        price: 40,
+        name: "Weekend Accessories Bundle",
+        price: 48,
         image: null,
-        description: "T-shirt, poster, and sticker pack in one bundle.",
+        description: "A polished set of extras to complete your look.",
       },
     ];
-    return demoProducts.find(p => p.id === id) || null;
+
+    return demoProducts.find((product) => product.id === id) || null;
   }
 
   if (!uuidPattern.test(id)) {
@@ -63,7 +63,7 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
     .single();
 
   if (error) {
-    if (error.code === "PGRST116") return null; // not found
+    if (error.code === "PGRST116") return null;
     throw new Error(`Failed to load product: ${error.message}`);
   }
 
@@ -74,6 +74,10 @@ type PageProps = {
   params: { id: string };
 };
 
+function formatPrice(value: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+}
+
 export default async function ProductDetailPage({ params }: PageProps) {
   const product = await getProduct(params.id);
 
@@ -82,47 +86,64 @@ export default async function ProductDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-10 space-y-10">
-      <Link href="/products" className="text-sm text-gray-400 hover:text-white">
-        {"<- Back to products"}
+    <div className="mx-auto max-w-7xl px-4 py-10 md:px-6">
+      <Link
+        href="/products"
+        className="inline-flex rounded-full border border-[var(--border-strong)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--foreground)]"
+      >
+        Back to products
       </Link>
 
-      <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr] items-start">
-        <div className="rounded-lg border border-gray-800 bg-black/40 p-4">
-          <div className="aspect-[4/3] overflow-hidden rounded-md bg-gray-900">
+      <div className="mt-8 grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="overflow-hidden rounded-[2rem] border border-[var(--border)] bg-white shadow-[0_18px_44px_rgba(17,17,17,0.06)]">
+          <div className="aspect-[4/5] overflow-hidden bg-[var(--card-tint)]">
             {product.image ? (
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-full w-full object-cover"
-              />
+              <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                No image
-              </div>
+              <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">No image</div>
             )}
           </div>
-          <div className="mt-4 space-y-2">
-            <h1 className="text-3xl font-bold">{product.name}</h1>
-            <p className="text-xl font-semibold">${product.price}</p>
-            <p className="text-gray-300 leading-relaxed">{product.description}</p>
-            <div className="flex gap-3 pt-2">
+        </section>
+
+        <div className="space-y-6">
+          <section className="rounded-[2rem] border border-[var(--border)] bg-white p-6 shadow-[0_18px_44px_rgba(17,17,17,0.06)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">Product detail</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">{product.name}</h1>
+            <p className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
+              {formatPrice(product.price)}
+            </p>
+            <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
+              {product.description || "A curated fashion and lifestyle piece designed to fit clean modern styling."}
+            </p>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl bg-[var(--card-tint)] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Shipping</p>
+                <p className="mt-2 text-sm text-[var(--foreground)]">Dispatch within 24 hours</p>
+              </div>
+              <div className="rounded-2xl bg-[var(--card-tint)] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Returns</p>
+                <p className="mt-2 text-sm text-[var(--foreground)]">Easy seven-day returns</p>
+              </div>
+              <div className="rounded-2xl bg-[var(--card-tint)] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Payment</p>
+                <p className="mt-2 text-sm text-[var(--foreground)]">Secure checkout available</p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <AddToCartButton product={product} />
               <a
                 href="#order-form"
-                className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-gray-100"
+                className="inline-flex flex-1 items-center justify-center rounded-full border border-[var(--border-strong)] px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--foreground)]"
               >
                 Buy now
               </a>
             </div>
-          </div>
-        </div>
+          </section>
 
-        <OrderForm
-          productId={product.id}
-          productName={product.name}
-          price={product.price}
-        />
+          <OrderForm productId={product.id} productName={product.name} price={product.price} />
+        </div>
       </div>
     </div>
   );

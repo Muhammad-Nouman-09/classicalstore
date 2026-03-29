@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AddProductForm from "@/components/AddProductForm";
 import OrdersList from "@/components/OrdersList";
@@ -37,20 +37,15 @@ export default function AdminPage() {
   const [adminToast, setAdminToast] = useState<string | null>(null);
 
   useEffect(() => {
-    // Test Supabase connection first
     const testConnection = async () => {
       try {
-        console.log("Testing Supabase connection...");
-        const { data, error } = await supabase.from("products").select("count").limit(1);
+        const { error } = await supabase.from("products").select("count").limit(1);
         if (error) {
-          console.error("Supabase connection test failed:", error);
           setConnectionError("Supabase connection failed. Please check your configuration.");
         } else {
-          console.log("Supabase connection successful");
           setConnectionError(null);
         }
-      } catch (err) {
-        console.error("Supabase connection test error:", err);
+      } catch {
         setConnectionError("Unable to connect to Supabase. Please check your internet connection and configuration.");
       }
     };
@@ -58,22 +53,15 @@ export default function AdminPage() {
     testConnection();
     fetchOrders();
 
-    // Set up real-time subscription for orders
     const channel = supabase
       .channel("orders_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "orders" },
-        (payload) => {
-          console.log("Order change:", payload);
-
-          if (payload.eventType === "INSERT") {
-            setNewOrdersCount((count) => count + 1);
-          }
-
-          fetchOrders(); // Refresh orders when changes occur
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          setNewOrdersCount((count) => count + 1);
         }
-      )
+
+        fetchOrders();
+      })
       .subscribe();
 
     return () => {
@@ -83,71 +71,53 @@ export default function AdminPage() {
 
   const fetchOrders = async () => {
     try {
-      console.log("Testing Supabase connection...");
-      // Test basic connectivity first
-      const { data: testData, error: testError } = await supabase
-        .from("products")
-        .select("count")
-        .limit(1);
+      const { error: testError } = await supabase.from("products").select("count").limit(1);
 
       if (testError) {
-        console.error("Supabase connection test failed:", testError);
-        setConnectionError("Cannot connect to Supabase. Please check your NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local");
+        setConnectionError(
+          "Cannot connect to Supabase. Please check your NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local"
+        );
         return;
       }
-      console.log("Supabase connection successful");
 
-      console.log("Fetching orders...");
       const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select("*")
         .order("created_at", { ascending: false, nullsFirst: false });
 
       if (ordersError) {
-        console.error("Supabase orders query error:", ordersError);
-        console.error("Error details:", JSON.stringify(ordersError, null, 2));
-        console.error("Error code:", ordersError.code);
-        console.error("Error message:", ordersError.message);
-        console.error("Error hint:", ordersError.hint);
-
-        // Check if it's a "relation does not exist" error
-        if (ordersError.code === '42P01' || ordersError.message?.includes('does not exist')) {
+        if (ordersError.code === "42P01" || ordersError.message?.includes("does not exist")) {
           setConnectionError("Database tables missing. Please run the database-setup.sql script in your Supabase SQL editor.");
-        } else if (ordersError.code === '42703' || ordersError.message?.includes('column') && ordersError.message?.includes('does not exist')) {
+        } else if (
+          ordersError.code === "42703" ||
+          (ordersError.message?.includes("column") && ordersError.message?.includes("does not exist"))
+        ) {
           setConnectionError("Missing database columns. Please run the fix-created-at.sql script in your Supabase SQL editor.");
-        } else if (ordersError.code === '42501' || ordersError.message?.includes('permission denied')) {
+        } else if (ordersError.code === "42501" || ordersError.message?.includes("permission denied")) {
           setConnectionError("Database permission denied. Please check your Supabase RLS policies.");
         } else {
-          setConnectionError(`Database error: ${ordersError.message || 'Unknown error'}`);
+          setConnectionError(`Database error: ${ordersError.message || "Unknown error"}`);
         }
         return;
       }
 
-      console.log(`Fetched ${ordersData?.length || 0} orders`);
-
-      console.log("Fetching products...");
-      const { data: productsData, error: productsError } = await supabase
-        .from("products")
-        .select("id, name, price");
+      const { data: productsData, error: productsError } = await supabase.from("products").select("id, name, price");
 
       if (productsError) {
-        console.error("Supabase products query error:", productsError);
-        console.error("Error details:", JSON.stringify(productsError, null, 2));
-        if (productsError.code === '42P01' || productsError.message?.includes('does not exist')) {
+        if (productsError.code === "42P01" || productsError.message?.includes("does not exist")) {
           setConnectionError("Products table does not exist. Please run the database-setup.sql script in your Supabase SQL editor.");
-        } else if (productsError.code === '42703' || productsError.message?.includes('column') && productsError.message?.includes('does not exist')) {
+        } else if (
+          productsError.code === "42703" ||
+          (productsError.message?.includes("column") && productsError.message?.includes("does not exist"))
+        ) {
           setConnectionError("Missing database columns. Please check your database schema.");
-        } else if (productsError.code === '42501' || productsError.message?.includes('permission denied')) {
+        } else if (productsError.code === "42501" || productsError.message?.includes("permission denied")) {
           setConnectionError("Database permission denied. Please check your Supabase RLS policies.");
         } else {
-          setConnectionError(`Failed to load products: ${productsError.message || 'Unknown database error'}`);
+          setConnectionError(`Failed to load products: ${productsError.message || "Unknown database error"}`);
         }
         return;
       }
-
-      console.log(`Fetched ${productsData?.length || 0} products`);
-
-      console.log(`Fetched ${ordersData?.length || 0} orders and ${productsData?.length || 0} products`);
 
       const productsMap = (productsData || []).reduce<Record<string, Product>>((acc, product) => {
         acc[product.id] = { id: product.id, name: product.name, price: product.price };
@@ -160,13 +130,8 @@ export default function AdminPage() {
       }));
 
       setOrders(mappedOrders);
-      console.log("Orders successfully loaded and mapped");
-      setConnectionError(null); // Clear any previous errors
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      console.error("Error type:", typeof error);
-      console.error("Error keys:", error ? Object.keys(error) : 'No error object');
-      // Set empty orders array to prevent UI crash
+      setConnectionError(null);
+    } catch {
       setOrders([]);
       setConnectionError("Failed to load orders. Please check your Supabase connection and database tables.");
     } finally {
@@ -193,11 +158,8 @@ export default function AdminPage() {
 
       setAdminToast(`Order ${orderId.slice(0, 8)} status set to ${status}.`);
       setTimeout(() => setAdminToast(null), 3000);
-
-      // refresh orders list after status change for immediate feedback
       await fetchOrders();
-    } catch (error) {
-      console.error("Error updating order status:", error);
+    } catch {
       setAdminToast("Unable to update order status. See console for details.");
       setTimeout(() => setAdminToast(null), 5000);
     } finally {
@@ -206,100 +168,89 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-emerald-50 text-emerald-900">
-      <div className="mx-auto max-w-6xl px-4 py-10">
-        <div className="mb-8">
-          <p className="text-xs uppercase tracking-[0.3em] text-emerald-600">Admin</p>
-          <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
-          <p className="text-emerald-800">Manage orders and products</p>
-        </div>
-
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="p-4 rounded-xl border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50">
-            <p className="text-xs text-emerald-700 uppercase tracking-wide">Total Orders</p>
-            <p className="text-2xl font-bold">{orders.length}</p>
+    <div className="mx-auto max-w-7xl px-4 py-10 md:px-6">
+      <section className="rounded-[2.25rem] border border-[var(--border)] bg-[linear-gradient(135deg,rgba(244,239,229,0.95),rgba(255,255,255,0.96))] px-6 py-10 shadow-[0_18px_44px_rgba(17,17,17,0.05)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Admin</p>
+        <div className="mt-4 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <h1 className="text-4xl font-semibold tracking-[-0.04em] text-[var(--foreground)] sm:text-5xl">Store dashboard</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
+              The admin area now follows the same visual system as the storefront, so managing orders and products feels like part of one brand experience.
+            </p>
           </div>
-          <div className="p-4 rounded-xl border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50">
-            <p className="text-xs text-emerald-700 uppercase tracking-wide">New Orders</p>
-            <p className="text-2xl font-bold">{newOrdersCount}</p>
-          </div>
-          <div className="p-4 rounded-xl border border-emerald-100 bg-white/90 shadow-sm shadow-emerald-50">
-            <p className="text-xs text-emerald-700 uppercase tracking-wide">Pending</p>
-            <p className="text-2xl font-bold">{orders.filter((o) => o.status === "pending").length}</p>
-          </div>
-        </div>
-
-        <RealTimeOrdersNotification />
-
-        {adminToast && (
-          <div className="mb-4 p-4 rounded-lg bg-emerald-600 text-white shadow-md">
-            {adminToast}
-          </div>
-        )}
-
-        {connectionError && (
-          <div className="mb-6 bg-red-50 text-red-800 border border-red-200 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-semibold">Connection Error</p>
-                  <p className="text-sm text-red-700">{connectionError}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setConnectionError(null);
-                  setLoading(true);
-                  fetchOrders();
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
-              >
-                Retry
-              </button>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-3xl border border-[var(--border)] bg-white px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Total orders</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{orders.length}</p>
+            </div>
+            <div className="rounded-3xl border border-[var(--border)] bg-white px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">New orders</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{newOrdersCount}</p>
+            </div>
+            <div className="rounded-3xl border border-[var(--border)] bg-white px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Pending</p>
+              <p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">
+                {orders.filter((order) => order.status === "pending").length}
+              </p>
             </div>
           </div>
-        )}
+        </div>
+      </section>
 
-        {/* Tab Navigation */}
-        <div className="flex space-x-1 mb-6 bg-emerald-50 p-1 rounded-lg border border-emerald-100">
+      <RealTimeOrdersNotification />
+
+      {adminToast && (
+        <div className="mt-6 rounded-[1.5rem] border border-[var(--border)] bg-[var(--foreground)] px-4 py-3 text-sm font-medium text-white shadow-[0_18px_40px_rgba(17,17,17,0.12)]">
+          {adminToast}
+        </div>
+      )}
+
+      {connectionError && (
+        <div className="mt-6 rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-red-800">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold">Connection error</p>
+              <p className="mt-1 text-sm">{connectionError}</p>
+            </div>
+            <button
+              onClick={() => {
+                setConnectionError(null);
+                setLoading(true);
+                fetchOrders();
+              }}
+              className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
+      <section className="mt-8">
+        <div className="inline-flex rounded-full border border-[var(--border)] bg-white p-1 shadow-[0_10px_24px_rgba(17,17,17,0.04)]">
           <button
             onClick={() => {
               setActiveTab("orders");
               setNewOrdersCount(0);
             }}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "orders"
-                ? "bg-emerald-600 text-white"
-                : "text-emerald-700 hover:bg-emerald-100"
+            className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+              activeTab === "orders" ? "bg-[var(--foreground)] text-white" : "text-[var(--foreground)]"
             }`}
           >
-            <div className="inline-flex items-center gap-2">
-              <span>Orders ({orders.length})</span>
-              {newOrdersCount > 0 && (
-                <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                  +{newOrdersCount}
-                </span>
-              )}
-            </div>
+            Orders ({orders.length}){newOrdersCount > 0 ? ` +${newOrdersCount}` : ""}
           </button>
           <button
             onClick={() => setActiveTab("products")}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === "products"
-                ? "bg-emerald-600 text-white"
-                : "text-emerald-700 hover:bg-emerald-100"
+            className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+              activeTab === "products" ? "bg-[var(--foreground)] text-white" : "text-[var(--foreground)]"
             }`}
           >
-            Add Product
+            Add product
           </button>
         </div>
+      </section>
 
-        {/* Tab Content */}
+      <section className="mt-6">
         {activeTab === "orders" && (
           <OrdersList
             orders={orders}
@@ -310,7 +261,7 @@ export default function AdminPage() {
         )}
 
         {activeTab === "products" && <AddProductForm />}
-      </div>
+      </section>
     </div>
   );
 }

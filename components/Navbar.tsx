@@ -11,6 +11,43 @@ type CartItem = {
   quantity: number;
 };
 
+const navLinks = [
+  { href: "/products", label: "New In" },
+  { href: "/products", label: "Women" },
+  { href: "/products", label: "Shoes" },
+  { href: "/products", label: "Accessories" },
+  { href: "/products", label: "Beauty" },
+  { href: "#categories", label: "Categories" },
+  { href: "#best-sellers", label: "Sale" },
+];
+
+function SearchIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+      <path d="M4 20a8 8 0 0 1 16 0" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function BagIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M5 8h14l-1 11H6L5 8Z" />
+      <path d="M9 8a3 3 0 1 1 6 0" />
+    </svg>
+  );
+}
+
 export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
@@ -33,6 +70,7 @@ export default function Navbar() {
           console.warn("Invalid cart data", error);
         }
       }
+
       setCartCount(0);
       setCartTotal(0);
     };
@@ -53,13 +91,9 @@ export default function Navbar() {
 
     const supabaseChannel = supabase
       .channel("admin_order_notifications")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "orders" },
-        () => {
-          setNewAdminOrders((count) => count + 1);
-        }
-      )
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, () => {
+        setNewAdminOrders((count) => count + 1);
+      })
       .subscribe();
 
     return () => {
@@ -74,65 +108,80 @@ export default function Navbar() {
   const CartButton = (
     <Link
       href="/cart"
-      className="group relative inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-fuchsia-200 hover:shadow-md"
+      className="inline-flex items-center gap-2 rounded-full border border-[var(--border-strong)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--foreground)]"
       onClick={closeMenu}
     >
-      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-fuchsia-500 via-purple-500 to-orange-400 text-[11px] font-bold text-white">
-        Bag
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--foreground)] text-white">
+        <BagIcon />
       </span>
-      <span className="hidden sm:inline">Cart</span>
+      <span>Cart</span>
       {cartCount > 0 && (
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">
+        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[11px] font-bold text-white">
           {cartCount}
         </span>
       )}
-      {cartCount > 0 && <span className="text-xs text-slate-500">${cartTotal.toFixed(2)}</span>}
+      {cartCount > 0 && <span className="hidden text-xs text-[var(--muted)] sm:inline">${cartTotal.toFixed(2)}</span>}
     </Link>
   );
 
   return (
-    <div className="sticky top-0 z-30 border-b border-slate-100 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-lg font-bold text-slate-900 hover:text-fuchsia-600">
-          <span className="h-10 w-10 rounded-2xl bg-gradient-to-br from-fuchsia-500 via-purple-500 to-orange-400 p-[2px] shadow-lg shadow-fuchsia-200">
-            <span className="flex h-full w-full items-center justify-center rounded-2xl bg-white text-fuchsia-600">CS</span>
+    <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[rgba(255,252,247,0.88)] backdrop-blur">
+      <div className="border-b border-[var(--border)] bg-[var(--card-tint)] px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
+        Free delivery over $50 and 20% off selected items this week
+      </div>
+
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
+        <Link href="/" className="flex items-center gap-3 text-[var(--foreground)]" onClick={closeMenu}>
+          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-strong)] bg-white text-sm font-semibold tracking-[0.26em] shadow-sm">
+            CS
           </span>
-          <span>Classical Store</span>
+          <div>
+            <p className="text-base font-semibold tracking-[-0.03em]">Classical Store</p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">Fashion and lifestyle</p>
+          </div>
         </Link>
 
         <button
-          className="inline-flex items-center justify-center rounded-md p-2 text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 md:hidden"
+          className="inline-flex items-center justify-center rounded-full border border-[var(--border-strong)] p-3 text-[var(--foreground)] md:hidden"
           aria-label="Toggle navigation menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
         >
           {menuOpen ? (
-            <svg className="h-6 w-6" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
             </svg>
           ) : (
-            <svg className="h-6 w-6" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
             </svg>
           )}
         </button>
 
-        <div className="hidden items-center space-x-5 md:flex text-slate-800">
-          <Link href="/" className="text-sm font-semibold hover:text-fuchsia-600 transition-colors" onClick={closeMenu}>
-            Home
-          </Link>
-          <Link href="/products" className="text-sm font-semibold hover:text-fuchsia-600 transition-colors" onClick={closeMenu}>
-            Shop
-          </Link>
-          <Link href="#categories" className="text-sm font-semibold hover:text-fuchsia-600 transition-colors" onClick={closeMenu}>
-            Categories
-          </Link>
-          <Link href="/contact" className="text-sm font-semibold hover:text-fuchsia-600 transition-colors" onClick={closeMenu}>
-            Contact
-          </Link>
+        <nav className="hidden items-center gap-6 md:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-sm font-semibold text-[var(--foreground)] transition hover:text-[var(--muted)]"
+              onClick={closeMenu}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden items-center gap-3 md:flex">
+          <button className="icon-button text-[var(--foreground)]" aria-label="Search">
+            <SearchIcon />
+          </button>
+          <button className="icon-button text-[var(--foreground)]" aria-label="Account">
+            <UserIcon />
+          </button>
+          {CartButton}
           <Link
             href="/admin"
-            className="relative text-sm font-semibold hover:text-fuchsia-600 transition-colors"
+            className="relative text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)] transition hover:text-[var(--foreground)]"
             onClick={() => {
               setNewAdminOrders(0);
               closeMenu();
@@ -140,71 +189,60 @@ export default function Navbar() {
           >
             Admin
             {newAdminOrders > 0 && (
-              <span className="absolute -top-2 -right-3 inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+              <span className="absolute -right-3 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-bold text-white">
                 {newAdminOrders}
               </span>
             )}
           </Link>
-          <div className="flex items-center gap-3">
-            <button className="icon-button text-slate-700" aria-label="Search">
-              ??
-            </button>
-            <button className="icon-button text-slate-700" aria-label="Account">
-              ??
-            </button>
-            {CartButton}
-          </div>
         </div>
       </div>
 
       <div
-        className={`md:hidden ${menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"} overflow-hidden transition-all duration-300 ease-in-out`}
+        className={`overflow-hidden border-t border-[var(--border)] bg-[rgba(255,252,247,0.96)] transition-all duration-300 md:hidden ${
+          menuOpen ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"
+        }`}
       >
-        <div className="mt-3 flex flex-col gap-3 rounded-xl border border-slate-100 bg-white/95 p-4 shadow-lg shadow-slate-100 backdrop-blur">
-          <Link href="/" className="text-sm font-semibold text-slate-900" onClick={closeMenu}>
-            Home
-          </Link>
-          <Link href="/products" className="text-sm font-semibold text-slate-900" onClick={closeMenu}>
-            Shop
-          </Link>
-          <Link href="#categories" className="text-sm font-semibold text-slate-900" onClick={closeMenu}>
-            Categories
-          </Link>
-          <Link href="/contact" className="text-sm font-semibold text-slate-900" onClick={closeMenu}>
-            Contact
-          </Link>
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4">
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--foreground)]"
+              onClick={closeMenu}
+            >
+              {link.label}
+            </Link>
+          ))}
+
+          <div className="mt-2 flex items-center gap-2">
+            <button className="icon-button text-[var(--foreground)]" aria-label="Search" onClick={closeMenu}>
+              <SearchIcon />
+            </button>
+            <button className="icon-button text-[var(--foreground)]" aria-label="Account" onClick={closeMenu}>
+              <UserIcon />
+            </button>
+            {CartButton}
+          </div>
+
           <Link
             href="/admin"
-            className="relative text-sm font-semibold text-slate-900"
+            className="pt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]"
             onClick={() => {
               setNewAdminOrders(0);
               closeMenu();
             }}
           >
             Admin
-            {newAdminOrders > 0 && (
-              <span className="ml-2 inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
-                {newAdminOrders}
-              </span>
-            )}
+            {newAdminOrders > 0 ? ` (${newAdminOrders})` : ""}
           </Link>
-          <div className="flex gap-2 pt-1">
-            <button className="icon-button text-slate-700" aria-label="Search" onClick={closeMenu}>
-              ??
-            </button>
-            <button className="icon-button text-slate-700" aria-label="Account" onClick={closeMenu}>
-              ??
-            </button>
-            {CartButton}
-          </div>
         </div>
       </div>
 
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 z-50 rounded-lg bg-slate-900 p-3 text-sm text-white shadow-md">
+        <div className="fixed bottom-4 right-4 z-50 rounded-2xl bg-[var(--foreground)] px-4 py-3 text-sm font-medium text-white shadow-[0_18px_40px_rgba(17,17,17,0.2)]">
           {toastMessage}
         </div>
       )}
-    </div>
+    </header>
   );
 }

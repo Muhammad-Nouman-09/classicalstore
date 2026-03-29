@@ -43,7 +43,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
   return (
     <button
       onClick={addToCart}
-      className="rounded-md border border-gray-700 px-4 py-2 text-sm font-semibold text-white transition hover:border-white"
+      className="flex-1 rounded-full bg-[var(--foreground)] px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)]"
     >
       {added ? "Added!" : "Add to cart"}
     </button>

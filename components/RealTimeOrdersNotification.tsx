@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -20,7 +20,6 @@ export default function RealTimeOrdersNotification() {
   const [latestOrder, setLatestOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    // Listen for new orders
     const channel = supabase
       .channel("new_orders")
       .on(
@@ -36,7 +35,6 @@ export default function RealTimeOrdersNotification() {
           setLatestOrder(newOrder);
           setShowNotification(true);
 
-          // Auto-hide notification after 5 seconds
           setTimeout(() => {
             setShowNotification(false);
           }, 5000);
@@ -59,49 +57,45 @@ export default function RealTimeOrdersNotification() {
   return (
     <div className="fixed inset-x-4 bottom-4 z-50 md:inset-auto md:bottom-6 md:right-6">
       <div
-        className={`w-full max-w-[420px] transform transition-all duration-300 ease-out md:w-80 ${
-          showNotification ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+        className={`w-full max-w-[420px] transform transition-all duration-300 ease-out md:w-96 ${
+          showNotification ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"
         }`}
       >
-        <div className="rounded-xl border border-emerald-500/40 bg-gray-900/95 shadow-2xl ring-1 ring-emerald-500/20 backdrop-blur">
-          <div className="flex items-start gap-3 px-3 py-3 sm:px-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.868 12.683A17.925 17.925 0 0112 21c7.962 0 12-1.21 12-2.683m-12 2.683a17.925 17.925 0 01-7.132-8.317M12 21c4.411 0 8-4.03 8-9s-3.589-9-8-9-8 4.03-8 9a9.06 9.06 0 001.832 5.683L4 21l4.868-8.317z" />
+        <div className="rounded-[1.5rem] border border-[var(--border-strong)] bg-[rgba(255,252,247,0.96)] shadow-[0_20px_50px_rgba(17,17,17,0.15)] backdrop-blur">
+          <div className="flex items-start gap-3 px-4 py-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--foreground)] text-white">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10l-1 11H8L7 8Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 8a2.5 2.5 0 0 1 5 0" />
               </svg>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-white leading-tight">New order received</p>
-              <p className="text-sm text-emerald-100 truncate">
-                {latestOrder.name} · {latestOrder.quantity} item(s)
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-[var(--foreground)]">New order received</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                {latestOrder.name} placed {latestOrder.quantity} item{latestOrder.quantity > 1 ? "s" : ""}.
               </p>
               {newOrdersCount > 1 && (
-                <p className="text-xs text-emerald-200 mt-1">
+                <p className="mt-2 text-xs text-[var(--muted)]">
                   +{newOrdersCount - 1} more new order{newOrdersCount - 1 > 1 ? "s" : ""}
                 </p>
               )}
-              <p className="text-xs text-gray-400 mt-2 truncate">Order ID: {latestOrder.id.slice(0, 8)}</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Order ID: {latestOrder.id.slice(0, 8)}</p>
             </div>
             <button
               onClick={dismissNotification}
-              className="rounded-md p-1 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+              className="rounded-full border border-[var(--border)] p-2 text-[var(--muted)] transition hover:border-[var(--foreground)] hover:text-[var(--foreground)]"
               aria-label="Dismiss notification"
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6 6 18" />
               </svg>
             </button>
           </div>
-          <div className="h-1 w-full bg-emerald-700/40">
-            <div
-              className={`h-full bg-emerald-400 transition-all duration-[4800ms] ${
-                showNotification ? "w-full" : "w-0"
-              }`}
-            />
+          <div className="h-1 w-full bg-[var(--border)]">
+            <div className={`h-full bg-[var(--accent)] transition-all duration-[4800ms] ${showNotification ? "w-full" : "w-0"}`} />
           </div>
         </div>
       </div>
     </div>
   );
 }
-

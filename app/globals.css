@@ -1,10 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --accent: #ec4899;
-  --font-geist-sans: "Inter var", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --background: #fcfaf6;
+  --foreground: #171717;
+  --foreground-soft: #2a2a2a;
+  --muted: #6f6556;
+  --accent: #b45f3d;
+  --border: #e5ddcf;
+  --border-strong: #cdbfa8;
+  --card-tint: #f4efe5;
+  --font-geist-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-geist-mono: "Cascadia Code", "Consolas", "Courier New", monospace;
 }
 
@@ -13,6 +18,10 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -27,49 +36,29 @@ a {
   text-decoration: none;
 }
 
-::selection {
-  background: rgba(236, 72, 153, 0.15);
-  color: #0f172a;
+img {
+  display: block;
 }
 
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 9999px;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+::selection {
+  background: rgba(180, 95, 61, 0.18);
+  color: var(--foreground);
 }
 
 .icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 2.5rem;
-  width: 2.5rem;
-  border-radius: 50%;
-  border: 1px solid #e2e8f0;
-  background: #fff;
+  height: 2.75rem;
+  width: 2.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-strong);
+  background: #ffffff;
   transition: all 150ms ease;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 10px 28px rgba(17, 17, 17, 0.06);
 }
 
 .icon-button:hover {
   transform: translateY(-1px);
-  border-color: #f472b6;
-  color: #ec4899;
-}
-
-.social-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 2.5rem;
-  width: 2.5rem;
-  border-radius: 9999px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  border-color: var(--foreground);
 }

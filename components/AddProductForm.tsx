@@ -38,28 +38,18 @@ export default function AddProductForm() {
         },
         body: JSON.stringify({
           name: formData.name.trim(),
-          price: Math.round(price * 100), // Send as cents
+          price: Math.round(price * 100),
           image: formData.image.trim() || null,
           description: formData.description.trim() || null,
         }),
       });
 
-      console.log("AddProductForm: Sending request with data:", {
-        name: formData.name.trim(),
-        price: Math.round(price * 100),
-        image: formData.image.trim() || null,
-        description: formData.description.trim() || null,
-      });
-
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("AddProductForm: API error response:", errorData);
         throw new Error(errorData.error || "Failed to add product.");
       }
 
-      const data = await response.json();
-      console.log("AddProductForm: Success response:", data);
-      setMessage({ type: "success", text: "Product added successfully!" });
+      setMessage({ type: "success", text: "Product added successfully." });
       setFormData({
         name: "",
         price: "",
@@ -67,7 +57,6 @@ export default function AddProductForm() {
         description: "",
       });
     } catch (error) {
-      console.error("Error adding product:", error);
       setMessage({
         type: "error",
         text: error instanceof Error ? error.message : "Failed to add product.",
@@ -78,30 +67,31 @@ export default function AddProductForm() {
   };
 
   return (
-    <div className="rounded-lg border border-emerald-100 bg-white p-6 shadow-sm shadow-emerald-50">
+    <div className="rounded-[2rem] border border-[var(--border)] bg-white p-6 shadow-[0_18px_44px_rgba(17,17,17,0.05)]">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2 text-emerald-900">Add New Product</h2>
-        <p className="text-emerald-700 text-sm">
-          Fill in the details below to add a new product to your store.
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">Product entry</p>
+        <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">Add new product</h2>
+        <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
+          Use the same cleaner storefront system when adding catalog items, so admin tools feel aligned with the customer-facing shop.
         </p>
       </div>
 
       {message && (
         <div
-          className={`mb-6 p-4 rounded-md ${
+          className={`mb-6 rounded-[1rem] border px-4 py-3 text-sm ${
             message.type === "success"
-              ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
-              : "bg-red-50 text-red-800 border border-red-200"
+              ? "border-[var(--border)] bg-[var(--card-tint)] text-[var(--foreground)]"
+              : "border-red-200 bg-red-50 text-red-800"
           }`}
         >
           {message.text}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-emerald-800 mb-2">
-            Product Name *
+          <label htmlFor="name" className="mb-2 block text-sm font-semibold text-[var(--foreground)]">
+            Product name
           </label>
           <input
             type="text"
@@ -110,14 +100,14 @@ export default function AddProductForm() {
             value={formData.name}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-md text-emerald-900 placeholder-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+            className="w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
             placeholder="Enter product name"
           />
         </div>
 
         <div>
-          <label htmlFor="price" className="block text-sm font-medium text-emerald-800 mb-2">
-            Price (USD) *
+          <label htmlFor="price" className="mb-2 block text-sm font-semibold text-[var(--foreground)]">
+            Price (USD)
           </label>
           <input
             type="number"
@@ -128,13 +118,13 @@ export default function AddProductForm() {
             required
             min="0"
             step="0.01"
-            className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-md text-emerald-900 placeholder-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+            className="w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
             placeholder="0.00"
           />
         </div>
 
         <div>
-          <label htmlFor="image" className="block text-sm font-medium text-emerald-800 mb-2">
+          <label htmlFor="image" className="mb-2 block text-sm font-semibold text-[var(--foreground)]">
             Image URL
           </label>
           <input
@@ -143,13 +133,13 @@ export default function AddProductForm() {
             name="image"
             value={formData.image}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-md text-emerald-900 placeholder-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+            className="w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
             placeholder="https://example.com/image.jpg"
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-emerald-800 mb-2">
+          <label htmlFor="description" className="mb-2 block text-sm font-semibold text-[var(--foreground)]">
             Description
           </label>
           <textarea
@@ -157,8 +147,8 @@ export default function AddProductForm() {
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            rows={4}
-            className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-md text-emerald-900 placeholder-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent resize-vertical"
+            rows={5}
+            className="w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
             placeholder="Enter product description"
           />
         </div>
@@ -167,9 +157,9 @@ export default function AddProductForm() {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="rounded-full bg-[var(--foreground)] px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Adding Product..." : "Add Product"}
+            {loading ? "Adding product..." : "Add product"}
           </button>
         </div>
       </form>

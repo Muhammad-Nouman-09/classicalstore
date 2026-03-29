@@ -1,4 +1,6 @@
 import Link from "next/link";
+import ClientProductCard from "@/components/ClientProductCard";
+import HomeOrderNotice from "@/components/HomeOrderNotice";
 import { supabase } from "@/lib/supabase";
 
 export const revalidate = 0;
@@ -10,7 +12,6 @@ type Product = {
   image: string | null;
   description: string | null;
   category?: string | null;
-  rating?: number;
 };
 
 async function getProducts(): Promise<Product[]> {
@@ -37,383 +38,411 @@ async function getProducts(): Promise<Product[]> {
 const fallbackProducts: Product[] = [
   {
     id: "1",
-    name: "Neon Street Hoodie",
-    price: 79,
+    name: "Tailored Linen Set",
+    price: 89,
     image:
-      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
-    description: "Oversized fit with soft fleece interior and reflective piping.",
-    category: "Hoodies",
-    rating: 4.7,
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80",
+    description: "Relaxed tailoring with a clean drape for everyday polish.",
+    category: "Clothes",
   },
   {
     id: "2",
-    name: "Midnight Runner Sneakers",
-    price: 120,
+    name: "Satin Evening Heels",
+    price: 115,
     image:
-      "https://images.unsplash.com/photo-1528701800489-20be9f461cde?auto=format&fit=crop&w=900&q=80",
-    description: "Chunky sole, breathable mesh, built for all-day city walks.",
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1200&q=80",
+    description: "Soft sheen, sculpted heel, and a secure ankle strap.",
     category: "Shoes",
-    rating: 4.8,
   },
   {
     id: "3",
-    name: "Chrome Mini Bag",
-    price: 58,
+    name: "Gold Layer Necklace",
+    price: 42,
     image:
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
-    description: "High-shine finish with crossbody strap and magnetic closure.",
-    category: "Bags",
-    rating: 4.6,
+      "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=1200&q=80",
+    description: "Stacked chains designed to elevate simple outfits fast.",
+    category: "Jewellery",
   },
   {
     id: "4",
-    name: "Sunset Gradient Tee",
-    price: 42,
+    name: "Velvet Vanity Kit",
+    price: 54,
     image:
-      "https://images.unsplash.com/photo-1496747611180-206a5c8c9f1f?auto=format&fit=crop&w=900&q=80",
-    description: "Boxy cut, premium cotton, dip-dyed ombr? fade.",
-    category: "Tees",
-    rating: 4.5,
+      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
+    description: "Glow-first beauty staples with a polished finish.",
+    category: "Cosmetics",
   },
   {
     id: "5",
-    name: "Layered Chain Set",
-    price: 35,
+    name: "Structured City Tote",
+    price: 73,
     image:
-      "https://images.unsplash.com/photo-1521572267365-46b99b6df8e2?auto=format&fit=crop&w=900&q=80",
-    description: "Mixed metals with charms for easy stacking.",
-    category: "Jewellery",
-    rating: 4.4,
+      "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1200&q=80",
+    description: "Roomy interior with a sharp silhouette for daily carry.",
+    category: "Accessories",
   },
   {
     id: "6",
-    name: "Glow Serum Duo",
-    price: 54,
+    name: "Daily Skin Ritual Set",
+    price: 61,
     image:
-      "https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=900&q=80",
-    description: "Vitamin C + niacinamide for daily dewy skin.",
-    category: "Beauty",
-    rating: 4.9,
+      "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=1200&q=80",
+    description: "Hydrating essentials for a soft, balanced routine.",
+    category: "Home & Skincare",
   },
   {
     id: "7",
-    name: "Sculpt Joggers",
-    price: 68,
+    name: "Pleated Weekend Dress",
+    price: 97,
     image:
-      "https://images.unsplash.com/photo-1521572163478-5b69a1fe9acb?auto=format&fit=crop&w=900&q=80",
-    description: "Tapered fit, stretch waistband, ankle zips.",
-    category: "Pants",
-    rating: 4.6,
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=80",
+    description: "Fluid movement, flattering cut, and easy day-to-night styling.",
+    category: "Clothes",
   },
   {
     id: "8",
-    name: "Velvet Strap Heels",
-    price: 95,
+    name: "Minimal Leather Slides",
+    price: 68,
     image:
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=80",
-    description: "Block heel, plush velvet, secure buckle strap.",
+      "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=1200&q=80",
+    description: "Low-profile comfort with a refined summer finish.",
     category: "Shoes",
-    rating: 4.3,
   },
 ];
 
-function priceTag(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(value)) return "$0.00";
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
-}
-
-const categoryCards = [
+const categories = [
   {
     name: "Clothes",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Jewellery",
-    image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=800&q=80",
+    subtitle: "Tailored layers and everyday essentials",
+    image:
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
   },
   {
     name: "Shoes",
-    image: "https://images.unsplash.com/photo-1528701800489-20be9f461cde?auto=format&fit=crop&w=800&q=80",
+    subtitle: "Statement pairs built for long days",
+    image:
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=900&q=80",
   },
   {
     name: "Bags",
-    image: "https://images.unsplash.com/photo-1521572267365-46b99b6df8e2?auto=format&fit=crop&w=800&q=80",
+    subtitle: "Clean silhouettes with practical storage",
+    image:
+      "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    name: "Jewellery",
+    subtitle: "Finishing pieces with shine and texture",
+    image:
+      "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=900&q=80",
   },
   {
     name: "Cosmetics",
-    image: "https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=800&q=80",
+    subtitle: "Glow-focused beauty and makeup picks",
+    image:
+      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80",
   },
   {
-    name: "Home & Skin Care",
-    image: "https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=800&q=80",
+    name: "Home & Skincare",
+    subtitle: "Daily rituals for calm, polished living",
+    image:
+      "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=900&q=80",
   },
 ];
 
-const features = [
-  { title: "Free Delivery", text: "On all orders over $50", icon: "??" },
-  { title: "Easy Returns", text: "30-day risk-free", icon: "??" },
-  { title: "Secure Payment", text: "256-bit encryption", icon: "??" },
-  { title: "Cash on Delivery", text: "Available in select cities", icon: "??" },
+const benefits = [
+  { title: "Free delivery", text: "On orders above $50 across major cities." },
+  { title: "Easy returns", text: "Seven-day returns on eligible items." },
+  { title: "Secure checkout", text: "Protected payments with order confirmation." },
+  { title: "Fast dispatch", text: "Most orders packed and sent within 24 hours." },
 ];
 
 const testimonials = [
   {
-    name: "Avery S.",
-    text: "Classical Store nails the balance of bold style and everyday comfort. My new go-to for quick fits.",
+    name: "Sara K.",
+    text: "The pieces feel more premium than the price suggests. My order arrived fast and looked exactly like the photos.",
   },
   {
-    name: "Jordan R.",
-    text: "Checkout was smooth, shipping was quick, and the packaging felt premium.",
+    name: "Amna R.",
+    text: "I came for the heels and ended up buying skincare too. The homepage made everything feel easy to browse.",
   },
   {
-    name: "Mila P.",
-    text: "Obsessed with the gradients and the curated drops. The rewards emails are ??.",
+    name: "Hiba M.",
+    text: "Clean styling, strong product shots, and the packaging was lovely. It finally feels like a real fashion store.",
   },
 ];
 
 export default async function Home() {
   const products = await getProducts();
-  const hydratedProducts = products.length
-    ? products.map((p) => ({ ...p, rating: p.rating ?? 4.6 }))
-    : fallbackProducts;
-
-  const trending = hydratedProducts.slice(0, 8);
-  const heroHighlight = hydratedProducts[0];
+  const catalog = products.length ? products : fallbackProducts;
+  const featuredProducts = catalog.slice(0, 4);
+  const bestSellers = catalog.slice(4, 8).length ? catalog.slice(4, 8) : catalog.slice(0, 4);
+  const heroProduct = catalog[0] ?? fallbackProducts[0];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
-      <main className="space-y-24 pb-20 pt-6">
-        {/* Hero */}
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-500/15 via-orange-400/10 to-pink-500/15" aria-hidden />
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-[1.2fr_1fr]">
-            <div className="space-y-6">
-              <p className="inline-flex items-center gap-2 rounded-full border border-fuchsia-200 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-700 shadow-sm">
-                New drop ? Spring / Summer 2026
+    <div className="bg-[var(--background)] text-[var(--foreground)]">
+      <main className="pb-20">
+        <HomeOrderNotice />
+        <section className="relative overflow-hidden border-b border-[var(--border)] bg-[linear-gradient(135deg,rgba(244,239,229,0.95),rgba(255,255,255,0.92)_60%,rgba(233,224,209,0.75))]">
+          <div
+            className="absolute inset-0 opacity-60"
+            aria-hidden
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at top left, rgba(24,24,24,0.08), transparent 30%), radial-gradient(circle at bottom right, rgba(183,147,95,0.18), transparent 26%)",
+            }}
+          />
+          <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-[1.05fr_0.95fr] md:px-6 lg:py-20">
+            <div className="flex flex-col justify-center space-y-7">
+              <p className="inline-flex w-fit items-center rounded-full border border-[var(--border-strong)] bg-white/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--muted)]">
+                Shop Trendy Fashion and Lifestyle
               </p>
-              <h1 className="text-4xl font-black leading-tight text-slate-900 sm:text-5xl">
-                Upgrade Your Style Today
-              </h1>
-              <p className="max-w-xl text-lg text-slate-700">
-                Bold fits, layered textures, and curated essentials built for the city pace. Fresh arrivals weekly
-                with member-only perks.
-              </p>
-              <div className="flex flex-wrap gap-4">
+              <div className="space-y-4">
+                <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-[-0.04em] text-[var(--foreground)] sm:text-5xl lg:text-6xl">
+                  Upgrade your style with modern fashion, beauty, and home essentials.
+                </h1>
+                <p className="max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
+                  Classical Store is built for shopping, not browsing confusion. Discover curated outfits, jewellery,
+                  shoes, cosmetics, and skincare in a clean storefront that puts products first.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
                 <Link
                   href="/products"
-                  className="rounded-full bg-gradient-to-r from-fuchsia-600 via-purple-600 to-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_15px_40px_rgba(236,72,153,0.25)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(236,72,153,0.35)]"
+                  className="inline-flex items-center justify-center rounded-full bg-[var(--foreground)] px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)]"
                 >
-                  Shop Now
+                  Shop now
                 </Link>
                 <Link
-                  href="#trending"
-                  className="rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-800 transition hover:border-fuchsia-300 hover:text-fuchsia-600"
+                  href="#featured-products"
+                  className="inline-flex items-center justify-center rounded-full border border-[var(--border-strong)] bg-white/80 px-6 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--foreground)]"
                 >
-                  Explore Trending
+                  Browse featured picks
                 </Link>
               </div>
-              <div className="flex flex-wrap items-center gap-4 text-sm font-semibold text-slate-700">
-                <span className="pill">Free delivery over $50</span>
-                <span className="pill">24h dispatch</span>
-                <span className="pill">Rewards + cashbacks</span>
+              <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
+                <div className="rounded-3xl border border-[var(--border)] bg-white/85 p-4 shadow-[0_18px_40px_rgba(17,17,17,0.06)]">
+                  <p className="text-2xl font-semibold text-[var(--foreground)]">24h</p>
+                  <p className="text-sm text-[var(--muted)]">Dispatch on most in-stock orders</p>
+                </div>
+                <div className="rounded-3xl border border-[var(--border)] bg-white/85 p-4 shadow-[0_18px_40px_rgba(17,17,17,0.06)]">
+                  <p className="text-2xl font-semibold text-[var(--foreground)]">4.8/5</p>
+                  <p className="text-sm text-[var(--muted)]">Average rating from happy shoppers</p>
+                </div>
+                <div className="rounded-3xl border border-[var(--border)] bg-white/85 p-4 shadow-[0_18px_40px_rgba(17,17,17,0.06)]">
+                  <p className="text-2xl font-semibold text-[var(--foreground)]">20% Off</p>
+                  <p className="text-sm text-[var(--muted)]">Selected styles this week only</p>
+                </div>
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-3xl border border-white/60 bg-white shadow-[0_25px_70px_rgba(0,0,0,0.08)]">
-              <div className="absolute inset-0 bg-gradient-to-tr from-fuchsia-500/20 via-transparent to-orange-500/25" />
-              <img
-                src={heroHighlight?.image || fallbackProducts[0].image!}
-                alt={heroHighlight?.name || "Hero fashion"}
-                className="h-full w-full object-cover transition duration-500 hover:scale-[1.02]"
-              />
-              <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-white/85 p-4 backdrop-blur">
-                <div className="flex items-center justify-between text-sm font-semibold text-slate-800">
-                  <span>{heroHighlight?.name || "Statement Set"}</span>
-                  <span className="text-fuchsia-600">{priceTag(heroHighlight?.price)}</span>
-                </div>
-                <p className="text-xs text-slate-500">Styled drop ? Limited run</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Categories */}
-        <section id="categories" className="mx-auto max-w-6xl space-y-6 px-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Shop by Category</h2>
-            <Link href="/products" className="text-sm font-semibold text-fuchsia-600 hover:text-fuchsia-700">
-              View All
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {categoryCards.map((cat) => (
-              <article
-                key={cat.name}
-                className="group relative overflow-hidden rounded-2xl bg-slate-50 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-              >
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="h-36 w-full object-cover transition duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent" aria-hidden />
-                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-4 text-white">
-                  <p className="text-sm font-semibold">{cat.name}</p>
-                  <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">Explore</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* Trending Products */}
-        <section id="trending" className="mx-auto max-w-6xl space-y-6 px-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fuchsia-500">Trending</p>
-              <h2 className="text-2xl font-bold">Hot right now</h2>
-            </div>
-            <Link href="/products" className="text-sm font-semibold text-fuchsia-600 hover:text-fuchsia-700">
-              Shop the collection
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {trending.map((item) => (
-              <article
-                key={item.id}
-                className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.04)] transition hover:-translate-y-1 hover:border-fuchsia-200 hover:shadow-[0_20px_60px_rgba(236,72,153,0.16)]"
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img src={item.image ?? fallbackProducts[0].image!} alt={item.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-110" />
-                  <span className="absolute left-3 top-3 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-fuchsia-600 backdrop-blur">
-                    {item.category || "New"}
-                  </span>
-                </div>
-                <div className="space-y-2 p-4">
-                  <p className="text-sm font-semibold text-slate-900 line-clamp-1">{item.name}</p>
-                  <p className="text-sm text-slate-500 line-clamp-2">{item.description || "Statement piece for every day."}</p>
-                  <div className="flex items-center justify-between text-sm font-semibold">
-                    <span className="text-slate-900">{priceTag(item.price)}</span>
-                    <span className="text-amber-500">? {item.rating?.toFixed(1)}</span>
+            <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
+              <article className="relative min-h-[420px] overflow-hidden rounded-[2rem] border border-white/70 bg-[#d9c9b2] shadow-[0_28px_80px_rgba(17,17,17,0.14)]">
+                <img src={heroProduct.image ?? fallbackProducts[0].image!} alt={heroProduct.name} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" aria-hidden />
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">New arrival</p>
+                  <div className="mt-2 flex items-end justify-between gap-4">
+                    <div>
+                      <h2 className="text-2xl font-semibold tracking-[-0.03em]">{heroProduct.name}</h2>
+                      <p className="mt-2 max-w-xs text-sm text-white/80">
+                        {heroProduct.description ?? "Refined pieces chosen to anchor the new season wardrobe."}
+                      </p>
+                    </div>
+                    <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
+                      ${heroProduct.price}
+                    </div>
                   </div>
-                  <button className="group/button relative w-full overflow-hidden rounded-full bg-slate-900 px-4 py-2 text-white transition hover:-translate-y-[2px]">
-                    <span className="relative z-10">Add to Cart</span>
-                    <span className="absolute inset-0 translate-y-full bg-gradient-to-r from-fuchsia-500 via-purple-500 to-orange-400 transition duration-300 group-hover/button:translate-y-0" />
-                  </button>
                 </div>
+              </article>
+
+              <div className="grid gap-4">
+                <article className="rounded-[2rem] border border-[var(--border)] bg-white p-6 shadow-[0_22px_48px_rgba(17,17,17,0.07)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Store focus</p>
+                  <h3 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
+                    Fashion-led shopping that feels premium from the first click.
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+                    Strong imagery, clear pricing, and direct add-to-cart actions keep the experience commercial and easy to trust.
+                  </p>
+                </article>
+                <article className="overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--card-tint)] p-6 shadow-[0_22px_48px_rgba(17,17,17,0.07)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">This week&apos;s offer</p>
+                  <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">Flat 20% off</h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                    Use the spotlight section to push bundles, limited drops, and conversion-friendly urgency.
+                  </p>
+                  <Link
+                    href="/products"
+                    className="mt-5 inline-flex items-center justify-center rounded-full border border-[var(--foreground)] px-5 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--foreground)] hover:text-white"
+                  >
+                    Shop the sale
+                  </Link>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="categories" className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Categories</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">
+                Shop by department
+              </h2>
+            </div>
+            <p className="max-w-xl text-sm leading-6 text-[var(--muted)]">
+              The homepage now points visitors straight into fashion, accessories, beauty, and skincare instead of making them decode what the store sells.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {categories.map((category) => (
+              <Link
+                key={category.name}
+                href="/products"
+                className="group relative isolate overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[#e9e0d1] shadow-[0_18px_44px_rgba(17,17,17,0.08)] transition hover:-translate-y-1"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" aria-hidden />
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="h-72 w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-x-0 bottom-0 p-6 text-white">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-2xl font-semibold tracking-[-0.03em]">{category.name}</h3>
+                      <p className="mt-2 text-sm text-white/80">{category.subtitle}</p>
+                    </div>
+                    <span className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]">
+                      Explore
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section id="featured-products" className="mx-auto max-w-7xl px-4 py-4 md:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Featured products</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">
+                Products users can understand in seconds
+              </h2>
+            </div>
+            <Link href="/products" className="text-sm font-semibold text-[var(--foreground)] underline-offset-4 hover:underline">
+              View full catalog
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            {featuredProducts.map((product) => (
+              <ClientProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+          <div className="rounded-[2.25rem] border border-[var(--border)] bg-[linear-gradient(135deg,#171717,#2b241d)] px-6 py-10 text-white shadow-[0_28px_80px_rgba(17,17,17,0.16)] lg:px-10">
+            <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#d7c1a0]">Conversion banner</p>
+                <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+                  Flat 20% off selected fashion and beauty picks this week.
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">
+                  This section gives the homepage the urgency it was missing: a clear offer, immediate value, and a direct CTA back into the catalog.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-2xl font-semibold">20%</p>
+                  <p className="text-sm text-white/70">Off spotlight items</p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-2xl font-semibold">48 hrs</p>
+                  <p className="text-sm text-white/70">Limited-time campaign window</p>
+                </div>
+                <Link
+                  href="/products"
+                  className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5"
+                >
+                  Shop deals
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="best-sellers" className="mx-auto max-w-7xl px-4 py-4 md:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Best sellers</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">
+                Strong second scroll section for conversion momentum
+              </h2>
+            </div>
+            <p className="max-w-xl text-sm leading-6 text-[var(--muted)]">
+              Repeating product visibility later on the page helps shoppers re-engage after the category and promo sections.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            {bestSellers.map((product) => (
+              <ClientProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {benefits.map((benefit) => (
+              <article
+                key={benefit.title}
+                className="rounded-[1.75rem] border border-[var(--border)] bg-white p-6 shadow-[0_16px_38px_rgba(17,17,17,0.05)]"
+              >
+                <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--card-tint)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                  Trust
+                </div>
+                <h3 className="mt-4 text-xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">{benefit.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{benefit.text}</p>
               </article>
             ))}
           </div>
         </section>
 
-        {/* Offer Banner */}
-        <section className="mx-auto max-w-6xl px-4">
-          <div className="relative overflow-hidden rounded-3xl border border-slate-100 bg-gradient-to-r from-fuchsia-600 via-purple-600 to-orange-500 p-[1px] shadow-[0_18px_60px_rgba(236,72,153,0.25)]">
-            <div className="flex flex-col gap-4 rounded-3xl bg-slate-900 px-6 py-10 text-white sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-200">Limited time</p>
-                <h3 className="text-3xl font-black">Flat 20% Off on Selected Items</h3>
-                <p className="text-sm text-slate-200">Refresh your rotation with bold colors and tactile textures.</p>
-              </div>
-              <Link
-                href="/products"
-                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                Shop Deals
-              </Link>
+        <section className="mx-auto max-w-7xl px-4 py-4 md:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Testimonials</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">
+                Social proof that adds confidence
+              </h2>
+            </div>
+            <div className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
+              Rated 4.8/5 by recent customers
             </div>
           </div>
-        </section>
-
-        {/* Features */}
-        <section className="mx-auto max-w-6xl space-y-6 px-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Why shop with us</h2>
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Trust markers</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {features.map((item) => (
-              <div
-                key={item.title}
-                className="rounded-2xl border border-slate-100 bg-white px-4 py-6 text-center shadow-sm transition hover:-translate-y-1 hover:border-fuchsia-200 hover:shadow-md"
-              >
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-100 via-purple-100 to-orange-100 text-lg">
-                  {item.icon}
-                </div>
-                <p className="text-sm font-bold text-slate-900">{item.title}</p>
-                <p className="text-xs text-slate-500">{item.text}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="mx-auto max-w-6xl space-y-6 px-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">What customers say</h2>
-            <span className="text-sm text-fuchsia-600">4.8/5 average rating</span>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {testimonials.map((t) => (
+          <div className="mt-8 grid gap-4 lg:grid-cols-3">
+            {testimonials.map((testimonial) => (
               <article
-                key={t.name}
-                className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition hover:-translate-y-1 hover:border-fuchsia-200"
+                key={testimonial.name}
+                className="rounded-[2rem] border border-[var(--border)] bg-white p-6 shadow-[0_18px_40px_rgba(17,17,17,0.05)]"
               >
-                <div className="flex items-center gap-3 pb-3">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-fuchsia-500 to-orange-400 text-white flex items-center justify-center font-bold">
-                    {t.name.charAt(0)}
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--card-tint)] text-sm font-semibold text-[var(--foreground)]">
+                    {testimonial.name.charAt(0)}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{t.name}</p>
-                    <p className="text-xs text-amber-500">?????</p>
+                    <p className="font-semibold text-[var(--foreground)]">{testimonial.name}</p>
+                    <p className="text-sm text-[var(--muted)]">Verified customer</p>
                   </div>
                 </div>
-                <p className="text-sm text-slate-600">{t.text}</p>
+                <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{testimonial.text}</p>
               </article>
             ))}
           </div>
         </section>
-
-        {/* Footer */}
-        <footer className="border-t border-slate-100 bg-slate-50/70">
-          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-[1.5fr_1fr_1fr]">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-lg font-bold">
-                <span className="h-10 w-10 rounded-2xl bg-gradient-to-br from-fuchsia-500 via-purple-500 to-orange-400 p-[2px] shadow-lg shadow-fuchsia-200">
-                  <span className="flex h-full w-full items-center justify-center rounded-2xl bg-white text-fuchsia-600">CS</span>
-                </span>
-                <span>Classical Store</span>
-              </div>
-              <p className="text-sm text-slate-600">
-                Fashion and lifestyle drops curated for the bold. New edits every week.
-              </p>
-              <div className="flex gap-3 text-sm font-semibold">
-                <span className="social-icon">FB</span>
-                <span className="social-icon">IG</span>
-                <span className="social-icon">X</span>
-                <span className="social-icon">IN</span>
-              </div>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-slate-900">Links</h4>
-              <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                <li><Link href="/about">About</Link></li>
-                <li><Link href="/contact">Contact</Link></li>
-                <li><Link href="/privacy">Privacy Policy</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-slate-900">Stay updated</h4>
-              <div className="mt-3 flex gap-3">
-                <input
-                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
-                  placeholder="Your email"
-                />
-                <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Join</button>
-              </div>
-            </div>
-          </div>
-        </footer>
       </main>
     </div>
   );
