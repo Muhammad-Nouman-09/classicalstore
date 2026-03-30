@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import ClientProductCard from "@/components/ClientProductCard";
 import HomeOrderNotice from "@/components/HomeOrderNotice";
 import { supabase } from "@/lib/supabase";
@@ -181,7 +182,9 @@ export default async function Home() {
   return (
     <div className="bg-[var(--background)] text-[var(--foreground)]">
       <main className="pb-20">
-        <HomeOrderNotice />
+        <Suspense fallback={null}>
+          <HomeOrderNotice />
+        </Suspense>
         <section className="relative overflow-hidden border-b border-[var(--border)] bg-[linear-gradient(135deg,rgba(244,239,229,0.95),rgba(255,255,255,0.92)_60%,rgba(233,224,209,0.75))]">
           <div
             className="absolute inset-0 opacity-60"
