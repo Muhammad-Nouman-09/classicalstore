@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatPrice } from "@/lib/productUtils";
 
 type Order = {
   id: string;
@@ -124,7 +125,7 @@ export default function OrdersList({ orders, loading, onStatusUpdate, updatingOr
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Total</p>
                     <p className="mt-2 text-base font-semibold text-[var(--foreground)]">
-                      ${order.products ? (order.products.price * order.quantity).toFixed(2) : "N/A"}
+                      {order.products ? formatPrice(order.products.price * order.quantity) : "N/A"}
                     </p>
                     <p className="mt-1 text-sm text-[var(--muted)]">{formatDate(order.created_at)}</p>
                   </div>

@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import ClientProductCard from "@/components/ClientProductCard";
 import HomeOrderNotice from "@/components/HomeOrderNotice";
 import { supabase } from "@/lib/supabase";
+import { formatPrice, mergeProductRatings } from "@/lib/productUtils";
 
 export const revalidate = 0;
 
@@ -13,21 +14,33 @@ type Product = {
   image: string | null;
   description: string | null;
   category?: string | null;
+  subcategory?: string | null;
+  rating?: number | null;
+  rating_count?: number | null;
+  in_stock?: boolean | null;
 };
 
 async function getProducts(): Promise<Product[]> {
   const primary = await supabase
     .from("products")
-    .select("id, name, price, image, description, category")
+    .select("id, name, price, image, description, category, subcategory, rating, in_stock")
     .order("name");
 
   if (!primary.error) {
-    return primary.data ?? [];
+    const { data: ratingRows } = await supabase.from("product_ratings").select("product_id, rating");
+    return mergeProductRatings(primary.data ?? [], ratingRows ?? []);
   }
 
-  if (primary.error?.message?.toLowerCase().includes("category")) {
-    const fallback = await supabase.from("products").select("id, name, price, image, description").order("name");
-    if (!fallback.error) return fallback.data ?? [];
+  if (
+    primary.error?.message?.toLowerCase().includes("category") ||
+    primary.error?.message?.toLowerCase().includes("rating") ||
+    primary.error?.message?.toLowerCase().includes("in_stock")
+  ) {
+    const fallback = await supabase.from("products").select("id, name, price, image, description, category, subcategory").order("name");
+    if (!fallback.error) {
+      const { data: ratingRows } = await supabase.from("product_ratings").select("product_id, rating");
+      return mergeProductRatings(fallback.data ?? [], ratingRows ?? []);
+    }
     console.error("Failed to load products (fallback)", fallback.error);
     return [];
   }
@@ -45,6 +58,8 @@ const fallbackProducts: Product[] = [
       "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80",
     description: "Relaxed tailoring with a clean drape for everyday polish.",
     category: "Clothes",
+    rating: 4.8,
+    in_stock: true,
   },
   {
     id: "2",
@@ -54,6 +69,8 @@ const fallbackProducts: Product[] = [
       "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1200&q=80",
     description: "Soft sheen, sculpted heel, and a secure ankle strap.",
     category: "Shoes",
+    rating: 4.7,
+    in_stock: true,
   },
   {
     id: "3",
@@ -63,6 +80,8 @@ const fallbackProducts: Product[] = [
       "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=1200&q=80",
     description: "Stacked chains designed to elevate simple outfits fast.",
     category: "Jewellery",
+    rating: 4.6,
+    in_stock: true,
   },
   {
     id: "4",
@@ -72,6 +91,8 @@ const fallbackProducts: Product[] = [
       "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
     description: "Glow-first beauty staples with a polished finish.",
     category: "Cosmetics",
+    rating: 4.5,
+    in_stock: true,
   },
   {
     id: "5",
@@ -81,6 +102,8 @@ const fallbackProducts: Product[] = [
       "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1200&q=80",
     description: "Roomy interior with a sharp silhouette for daily carry.",
     category: "Accessories",
+    rating: 4.7,
+    in_stock: false,
   },
   {
     id: "6",
@@ -90,6 +113,8 @@ const fallbackProducts: Product[] = [
       "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=1200&q=80",
     description: "Hydrating essentials for a soft, balanced routine.",
     category: "Home & Skincare",
+    rating: 4.6,
+    in_stock: true,
   },
   {
     id: "7",
@@ -99,6 +124,8 @@ const fallbackProducts: Product[] = [
       "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=80",
     description: "Fluid movement, flattering cut, and easy day-to-night styling.",
     category: "Clothes",
+    rating: 4.8,
+    in_stock: true,
   },
   {
     id: "8",
@@ -108,6 +135,8 @@ const fallbackProducts: Product[] = [
       "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=1200&q=80",
     description: "Low-profile comfort with a refined summer finish.",
     category: "Shoes",
+    rating: 4.4,
+    in_stock: true,
   },
 ];
 
@@ -151,7 +180,7 @@ const categories = [
 ];
 
 const benefits = [
-  { title: "Free delivery", text: "On orders above $50 across major cities." },
+  { title: "Free delivery", text: "On orders above Rs 50 across major cities." },
   { title: "Easy returns", text: "Seven-day returns on eligible items." },
   { title: "Secure checkout", text: "Protected payments with order confirmation." },
   { title: "Fast dispatch", text: "Most orders packed and sent within 24 hours." },
@@ -252,7 +281,7 @@ export default async function Home() {
                       </p>
                     </div>
                     <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
-                      ${heroProduct.price}
+                      {formatPrice(heroProduct.price)}
                     </div>
                   </div>
                 </div>

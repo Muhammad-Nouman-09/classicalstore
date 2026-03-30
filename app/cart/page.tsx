@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { formatPrice } from "@/lib/productUtils";
 
 type CartItem = {
   id: string;
@@ -11,10 +13,6 @@ type CartItem = {
   image: string | null;
   quantity: number;
 };
-
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
-}
 
 export default function CartPage() {
   const router = useRouter();
@@ -27,13 +25,32 @@ export default function CartPage() {
     phone: "",
     address: "",
   });
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const cartData = localStorage.getItem("cart");
-    if (cartData) {
-      setCart(JSON.parse(cartData));
-    }
-    setIsLoading(false);
+    let isMounted = true;
+
+    const loadCheckoutContext = async () => {
+      const cartData = localStorage.getItem("cart");
+      if (cartData) {
+        setCart(JSON.parse(cartData));
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!isMounted) return;
+
+      setUserId(user?.id ?? null);
+      setIsLoading(false);
+    };
+
+    void loadCheckoutContext();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const syncCart = (updated: CartItem[], message: string) => {
@@ -92,6 +109,7 @@ export default function CartPage() {
             address: customer.address.trim(),
             productId: item.id,
             quantity: item.quantity,
+            userId,
           }),
         });
 
@@ -102,7 +120,11 @@ export default function CartPage() {
       }
 
       clearCart();
-      router.push("/?order=success");
+      const params = new URLSearchParams({ order: "success" });
+      if (userId && cart.length > 0) {
+        params.set("rate", cart.map((item) => item.id).join(","));
+      }
+      router.push(`/?${params.toString()}`);
       router.refresh();
     } catch (error) {
       setCheckoutError(error instanceof Error ? error.message : "Checkout failed.");
@@ -314,7 +336,7 @@ export default function CartPage() {
             )}
 
             <div className="mt-6 rounded-[1.5rem] bg-[var(--card-tint)] p-4 text-sm leading-6 text-[var(--muted)]">
-              Free delivery unlocks at $50. After checkout, the cart clears and you return to the homepage with a success state.
+              Free delivery unlocks at Rs 50. After checkout, the cart clears and you return to the homepage with a success state.
             </div>
           </aside>
         </section>

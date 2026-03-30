@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { formatPrice } from "@/lib/productUtils";
 
 type CartItem = {
   id: string;
@@ -191,14 +192,14 @@ export default function Navbar() {
           {cartCount}
         </span>
       )}
-      {cartCount > 0 && <span className="hidden text-xs text-[var(--muted)] sm:inline">${cartTotal.toFixed(2)}</span>}
+      {cartCount > 0 && <span className="hidden text-xs text-[var(--muted)] sm:inline">{formatPrice(cartTotal)}</span>}
     </Link>
   );
 
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[rgba(255,252,247,0.88)] backdrop-blur">
       <div className="border-b border-[var(--border)] bg-[var(--card-tint)] px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
-        Free delivery over $50 and 20% off selected items this week
+        Free delivery over Rs 50 and 20% off selected items this week
       </div>
 
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">

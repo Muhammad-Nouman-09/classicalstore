@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
-  const { name, phone, address, productId, quantity } = await req.json();
+  const { name, phone, address, productId, quantity, userId } = await req.json();
 
   if (!name || !phone || !address || !productId || !quantity) {
     return NextResponse.json(
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       address,
       product_id: productId,
       quantity: parsedQuantity,
+      user_id: userId || null,
       status: "pending",
     })
     .select()

@@ -1,17 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { formatPrice } from "@/lib/productUtils";
 
 type OrderFormProps = {
   productId: string;
   productName: string;
   price: number;
 };
-
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
-}
 
 export default function OrderForm({ productId, productName, price }: OrderFormProps) {
   const router = useRouter();
@@ -21,6 +19,26 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!isMounted) return;
+      setUserId(user?.id ?? null);
+    };
+
+    void loadUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSubmit = async () => {
     setMessage(null);
@@ -38,6 +56,7 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
           address: address.trim(),
           productId,
           quantity,
+          userId,
         }),
       });
 
@@ -50,7 +69,11 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
       setPhone("");
       setAddress("");
       setQuantity(1);
-      router.push("/?order=success");
+      const params = new URLSearchParams({ order: "success" });
+      if (userId) {
+        params.set("rate", productId);
+      }
+      router.push(`/?${params.toString()}`);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to place order.");

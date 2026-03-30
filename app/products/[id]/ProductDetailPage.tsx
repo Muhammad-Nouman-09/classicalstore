@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import ProductRating from "@/components/ProductRating";
+import { formatPrice, normalizeProduct } from "@/lib/productUtils";
 import OrderForm from "./OrderForm";
 import AddToCartButton from "./AddToCartButton";
 
@@ -13,11 +15,38 @@ type Product = {
   price: number;
   image: string | null;
   description: string | null;
+  rating?: number | null;
+  rating_count?: number | null;
+  in_stock?: boolean | null;
 };
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const demoPattern = /^demo-\d+$/;
+
+async function getProductRatings(productId: string) {
+  const { data, error } = await supabase.from("product_ratings").select("product_id, rating").eq("product_id", productId);
+
+  if (error) {
+    return null;
+  }
+
+  return data ?? [];
+}
+
+function applyRatingSummary(product: Product, ratingRows: Array<{ product_id: string; rating: number }> | null) {
+  if (!ratingRows?.length) {
+    return normalizeProduct(product);
+  }
+
+  const average = ratingRows.reduce((sum, row) => sum + row.rating, 0) / ratingRows.length;
+
+  return normalizeProduct({
+    ...product,
+    rating: Math.round(average * 10) / 10,
+    rating_count: ratingRows.length,
+  });
+}
 
 async function getProduct(id: string | undefined): Promise<Product | null> {
   if (!id) {
@@ -32,6 +61,9 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
         price: 85,
         image: null,
         description: "Relaxed tailoring designed for clean, all-day styling.",
+        rating: 4.7,
+        rating_count: 12,
+        in_stock: true,
       },
       {
         id: "demo-2",
@@ -39,6 +71,9 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
         price: 64,
         image: null,
         description: "Everyday beauty picks curated for glow and ease.",
+        rating: 4.6,
+        rating_count: 9,
+        in_stock: true,
       },
       {
         id: "demo-3",
@@ -46,6 +81,9 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
         price: 48,
         image: null,
         description: "A polished set of extras to complete your look.",
+        rating: 4.4,
+        rating_count: 6,
+        in_stock: false,
       },
     ];
 
@@ -58,25 +96,33 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, price, image, description")
+    .select("id, name, price, image, description, rating, in_stock")
     .eq("id", id)
     .single();
 
   if (error) {
+    if (error.message?.toLowerCase().includes("rating") || error.message?.toLowerCase().includes("in_stock")) {
+      const fallback = await supabase.from("products").select("id, name, price, image, description").eq("id", id).single();
+      if (fallback.error) {
+        if (fallback.error.code === "PGRST116") return null;
+        throw new Error(`Failed to load product: ${fallback.error.message}`);
+      }
+
+      const ratingRows = await getProductRatings(id);
+      return applyRatingSummary(fallback.data, ratingRows);
+    }
+
     if (error.code === "PGRST116") return null;
     throw new Error(`Failed to load product: ${error.message}`);
   }
 
-  return data;
+  const ratingRows = await getProductRatings(id);
+  return applyRatingSummary(data, ratingRows);
 }
 
 type PageProps = {
   params: { id: string };
 };
-
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
-}
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const product = await getProduct(params.id);
@@ -84,6 +130,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
   if (!product) {
     notFound();
   }
+
+  const normalizedProduct = normalizeProduct(product);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 md:px-6">
@@ -97,8 +145,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <div className="mt-8 grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <section className="overflow-hidden rounded-[2rem] border border-[var(--border)] bg-white shadow-[0_18px_44px_rgba(17,17,17,0.06)]">
           <div className="aspect-[4/5] overflow-hidden bg-[var(--card-tint)]">
-            {product.image ? (
-              <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+            {normalizedProduct.image ? (
+              <img src={normalizedProduct.image} alt={normalizedProduct.name} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">No image</div>
             )}
@@ -108,13 +156,36 @@ export default async function ProductDetailPage({ params }: PageProps) {
         <div className="space-y-6">
           <section className="rounded-[2rem] border border-[var(--border)] bg-white p-6 shadow-[0_18px_44px_rgba(17,17,17,0.06)]">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">Product detail</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">{product.name}</h1>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">{normalizedProduct.name}</h1>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="rounded-full bg-[var(--card-tint)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
+                {normalizedProduct.rating.toFixed(1)} / 5
+              </span>
+              <span className="rounded-full bg-[var(--card-tint)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
+                {normalizedProduct.rating_count} ratings
+              </span>
+              <span
+                className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                  normalizedProduct.in_stock ? "bg-[var(--card-tint)] text-[var(--foreground)]" : "bg-red-50 text-red-700"
+                }`}
+              >
+                {normalizedProduct.in_stock ? "In stock" : "Out of stock"}
+              </span>
+            </div>
             <p className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-              {formatPrice(product.price)}
+              {formatPrice(normalizedProduct.price)}
             </p>
             <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
-              {product.description || "A curated fashion and lifestyle piece designed to fit clean modern styling."}
+              {normalizedProduct.description || "A curated fashion and lifestyle piece designed to fit clean modern styling."}
             </p>
+
+            <div className="mt-6">
+              <ProductRating
+                productId={normalizedProduct.id}
+                initialRating={normalizedProduct.rating}
+                initialCount={normalizedProduct.rating_count}
+              />
+            </div>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl bg-[var(--card-tint)] p-4">
@@ -132,17 +203,29 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <AddToCartButton product={product} />
-              <a
-                href="#order-form"
-                className="inline-flex flex-1 items-center justify-center rounded-full border border-[var(--border-strong)] px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--foreground)]"
-              >
-                Buy now
-              </a>
+              <AddToCartButton product={normalizedProduct} disabled={!normalizedProduct.in_stock} />
+              {normalizedProduct.in_stock ? (
+                <a
+                  href="#order-form"
+                  className="inline-flex flex-1 items-center justify-center rounded-full border border-[var(--border-strong)] px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--foreground)]"
+                >
+                  Buy now
+                </a>
+              ) : (
+                <span className="inline-flex flex-1 items-center justify-center rounded-full border border-[var(--border)] px-4 py-3 text-sm font-semibold text-[var(--muted)]">
+                  Unavailable
+                </span>
+              )}
             </div>
           </section>
 
-          <OrderForm productId={product.id} productName={product.name} price={product.price} />
+          {normalizedProduct.in_stock ? (
+            <OrderForm
+              productId={normalizedProduct.id}
+              productName={normalizedProduct.name}
+              price={normalizedProduct.price}
+            />
+          ) : null}
         </div>
       </div>
     </div>

@@ -11,7 +11,7 @@ type Product = {
 
 type CartItem = Product & { quantity: number };
 
-export default function AddToCartButton({ product }: { product: Product }) {
+export default function AddToCartButton({ product, disabled = false }: { product: Product; disabled?: boolean }) {
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
@@ -43,9 +43,10 @@ export default function AddToCartButton({ product }: { product: Product }) {
   return (
     <button
       onClick={addToCart}
-      className="flex-1 rounded-full bg-[var(--foreground)] px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)]"
+      disabled={disabled}
+      className="flex-1 rounded-full bg-[var(--foreground)] px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
     >
-      {added ? "Added!" : "Add to cart"}
+      {disabled ? "Out of stock" : added ? "Added!" : "Add to cart"}
     </button>
   );
 }
