@@ -8,6 +8,31 @@ import { supabase } from "@/lib/supabaseClient";
 type AuthMode = "login" | "signup";
 type LoadingMode = "idle" | "email" | "google" | "session";
 
+function EyeIcon() {
+  return (
+    <svg aria-hidden className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path
+        d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg aria-hidden className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path
+        d="M3 3l18 18M10.6 10.7A3 3 0 0 0 12 15a3 3 0 0 0 2.31-1.08M9.88 5.08A11.4 11.4 0 0 1 12 5c6.5 0 10 7 10 7a17.56 17.56 0 0 1-4.23 4.77M6.1 6.11C3.56 7.83 2 12 2 12a17.3 17.3 0 0 0 6.89 5.52"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function GoogleIcon() {
   return (
     <svg aria-hidden className="h-5 w-5" viewBox="0 0 24 24">
@@ -36,6 +61,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loadingMode, setLoadingMode] = useState<LoadingMode>("session");
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -233,17 +259,28 @@ export default function AuthPage() {
                   <label htmlFor="password" className="text-sm font-semibold text-[var(--foreground)]">
                     Password
                   </label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    className="w-full rounded-[1.5rem] border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--foreground)]"
-                    placeholder="Enter your password"
-                    autoComplete={mode === "login" ? "current-password" : "new-password"}
-                    required
-                    disabled={isBusy}
-                  />
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      className="w-full rounded-[1.5rem] border border-[var(--border)] bg-white px-4 py-3 pr-14 text-sm text-[var(--foreground)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--foreground)]"
+                      placeholder="Enter your password"
+                      autoComplete={mode === "login" ? "current-password" : "new-password"}
+                      required
+                      disabled={isBusy}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-2 inline-flex items-center justify-center rounded-full px-3 text-[var(--muted)] transition hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-60"
+                      onClick={() => setShowPassword((visible) => !visible)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      disabled={isBusy}
+                    >
+                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
                 </div>
 
                 {errorMessage ? (

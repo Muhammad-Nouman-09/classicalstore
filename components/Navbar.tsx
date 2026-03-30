@@ -1,8 +1,10 @@
 "use client";
 
+import { FormEvent } from "react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 type CartItem = {
@@ -59,6 +61,11 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountHref, setAccountHref] = useState("/auth");
   const [authUser, setAuthUser] = useState<User | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const updateCartInfo = () => {
@@ -130,6 +137,32 @@ export default function Navbar() {
   const closeMenu = () => setMenuOpen(false);
   const profileBadge = authUser?.email?.trim()?.charAt(0)?.toUpperCase() ?? "P";
   const isAdmin = authUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const query = searchQuery.trim();
+    const nextUrl = query ? `/products?q=${encodeURIComponent(query)}` : "/products";
+
+    setSearchOpen(false);
+    setMenuOpen(false);
+    router.push(nextUrl);
+  };
+
+  const handleSearchClick = () => {
+    if (searchOpen) {
+      setSearchOpen(false);
+      return;
+    }
+
+    if (pathname === "/products") {
+      setSearchQuery(searchParams.get("q") ?? "");
+      setSearchOpen(true);
+      return;
+    }
+
+    router.push("/products");
+  };
 
   const AccountButton = (
     <Link href={accountHref} className="icon-button text-[var(--foreground)]" aria-label="Account" onClick={closeMenu}>
@@ -210,7 +243,7 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <button className="icon-button text-[var(--foreground)]" aria-label="Search">
+          <button className="icon-button text-[var(--foreground)]" aria-label="Search" onClick={handleSearchClick}>
             <SearchIcon />
           </button>
           {AccountButton}
@@ -235,6 +268,37 @@ export default function Navbar() {
         </div>
       </div>
 
+      {searchOpen ? (
+        <div className="border-t border-[var(--border)] bg-[rgba(255,252,247,0.96)]">
+          <div className="mx-auto max-w-7xl px-4 py-4 md:px-6">
+            <form className="flex flex-col gap-3 sm:flex-row" onSubmit={handleSearchSubmit}>
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="w-full rounded-full border border-[var(--border)] bg-white px-5 py-3 text-sm text-[var(--foreground)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--foreground)]"
+                placeholder="Search products, categories, or styles"
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-full bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)]"
+                >
+                  Search
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-full border border-[var(--border-strong)] bg-white px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--foreground)]"
+                  onClick={() => setSearchOpen(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
       <div
         className={`overflow-hidden border-t border-[var(--border)] bg-[rgba(255,252,247,0.96)] transition-all duration-300 md:hidden ${
           menuOpen ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"
@@ -253,12 +317,27 @@ export default function Navbar() {
           ))}
 
           <div className="mt-2 flex items-center gap-2">
-            <button className="icon-button text-[var(--foreground)]" aria-label="Search" onClick={closeMenu}>
+            <button className="icon-button text-[var(--foreground)]" aria-label="Search" onClick={handleSearchClick}>
               <SearchIcon />
             </button>
             {AccountButton}
             {CartButton}
           </div>
+
+          <form className="mt-3 flex gap-3" onSubmit={handleSearchSubmit}>
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="w-full rounded-full border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--foreground)]"
+              placeholder="Search products"
+            />
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-full bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--foreground-soft)]"
+            >
+              Go
+            </button>
+          </form>
 
           {isAdmin ? (
             <Link
