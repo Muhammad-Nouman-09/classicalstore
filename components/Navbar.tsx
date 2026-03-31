@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent } from "react";
 import Link from "next/link";
@@ -25,7 +25,7 @@ const navLinks = [
   { href: "#best-sellers", label: "Sale" },
 ];
 
-const ADMIN_EMAIL = "mnouman.developer@gmail.com";
+const ADMIN_EMAILS = ["mnouman.developer@gmail.com", "cclassicalstore@gmail.com"];
 
 function SearchIcon() {
   return (
@@ -137,7 +137,7 @@ export default function Navbar() {
 
   const closeMenu = () => setMenuOpen(false);
   const profileBadge = authUser?.email?.trim()?.charAt(0)?.toUpperCase() ?? "P";
-  const isAdmin = authUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const isAdmin = authUser?.email ? ADMIN_EMAILS.includes(authUser.email.toLowerCase()) : false;
 
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -213,22 +213,28 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <button
-          className="inline-flex items-center justify-center rounded-full border border-[var(--border-strong)] p-3 text-[var(--foreground)] md:hidden"
-          aria-label="Toggle navigation menu"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          {menuOpen ? (
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
-            </svg>
-          ) : (
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-            </svg>
-          )}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <button className="icon-button text-[var(--foreground)]" aria-label="Search" onClick={handleSearchClick}>
+            <SearchIcon />
+          </button>
+          {AccountButton}
+          <button
+            className="inline-flex items-center justify-center rounded-full border border-[var(--border-strong)] p-3 text-[var(--foreground)]"
+            aria-label="Toggle navigation menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? (
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+        </div>
 
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
@@ -317,13 +323,7 @@ export default function Navbar() {
             </Link>
           ))}
 
-          <div className="mt-2 flex items-center gap-2">
-            <button className="icon-button text-[var(--foreground)]" aria-label="Search" onClick={handleSearchClick}>
-              <SearchIcon />
-            </button>
-            {AccountButton}
-            {CartButton}
-          </div>
+          <div className="mt-2 flex items-center gap-2">{CartButton}</div>
 
           <form className="mt-3 flex gap-3" onSubmit={handleSearchSubmit}>
             <input
