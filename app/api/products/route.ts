@@ -81,7 +81,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("products")
       .select("id, name, price, category, subcategory, image, description, in_stock")
-      .limit(5);
+      .order("created_at", { ascending: false, nullsFirst: false });
 
     if (error) {
       console.error("Supabase GET error:", error);

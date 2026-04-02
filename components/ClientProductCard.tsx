@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import AddToCartButton from "@/app/products/[id]/AddToCartButton";
+import { buildProductsFilterHref } from "@/lib/categorySystem";
 import { formatPrice, getRatingStars, normalizeProduct } from "@/lib/productUtils";
 
 type Product = {
@@ -10,6 +11,8 @@ type Product = {
   price: number;
   image: string | null;
   description: string | null;
+  category?: string | null;
+  subcategory?: string | null;
   rating?: number | null;
   rating_count?: number | null;
   in_stock?: boolean | null;
@@ -19,7 +22,7 @@ export default function ClientProductCard({ product }: { product: Product }) {
   const normalizedProduct = normalizeProduct(product);
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[2rem] border border-[var(--border)] bg-white shadow-[0_18px_44px_rgba(17,17,17,0.06)] transition hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(17,17,17,0.1)]">
+    <article className="group mx-auto flex h-full w-full max-w-[80vw] flex-col overflow-hidden rounded-[2rem] border border-[var(--border)] bg-white shadow-[0_18px_44px_rgba(17,17,17,0.06)] transition hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(17,17,17,0.1)] sm:max-w-none">
       <Link href={`/products/${normalizedProduct.id}`} className="relative block overflow-hidden bg-[var(--card-tint)]">
         <span className="absolute left-4 top-4 z-10 rounded-full border border-white/70 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
           Featured
@@ -38,6 +41,30 @@ export default function ClientProductCard({ product }: { product: Product }) {
       </Link>
 
       <div className="flex flex-1 flex-col p-5">
+        {(normalizedProduct.category?.trim() || normalizedProduct.subcategory?.trim()) && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {normalizedProduct.category?.trim() ? (
+              <Link
+                href={buildProductsFilterHref({ category: normalizedProduct.category })}
+                className="rounded-full border border-[var(--border)] bg-[var(--card-tint)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--foreground)] transition hover:border-[var(--foreground)]"
+              >
+                {normalizedProduct.category.trim()}
+              </Link>
+            ) : null}
+            {normalizedProduct.category?.trim() && normalizedProduct.subcategory?.trim() ? (
+              <Link
+                href={buildProductsFilterHref({
+                  category: normalizedProduct.category,
+                  subcategory: normalizedProduct.subcategory,
+                })}
+                className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)] transition hover:border-[var(--foreground)] hover:text-[var(--foreground)]"
+              >
+                {normalizedProduct.subcategory.trim()}
+              </Link>
+            ) : null}
+          </div>
+        )}
+
         <Link href={`/products/${normalizedProduct.id}`} className="space-y-2">
           <h3 className="text-xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">{normalizedProduct.name}</h3>
           <p className="line-clamp-2 text-sm leading-6 text-[var(--muted)]">
@@ -49,7 +76,8 @@ export default function ClientProductCard({ product }: { product: Product }) {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Rating</p>
             <p className="mt-1 text-sm font-semibold text-[var(--foreground)]">
-              {getRatingStars(normalizedProduct.rating)} <span className="ml-1">{normalizedProduct.rating.toFixed(1)}</span>
+              <span className="text-[#c89b2b]">{getRatingStars(normalizedProduct.rating)}</span>
+              <span className="ml-1">{normalizedProduct.rating.toFixed(1)}</span>
               <span className="ml-2 text-[var(--muted)]">({normalizedProduct.rating_count})</span>
             </p>
           </div>

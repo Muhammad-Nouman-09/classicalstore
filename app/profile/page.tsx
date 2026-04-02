@@ -295,37 +295,7 @@ export default function ProfilePage() {
       <section className="mx-auto max-w-7xl px-4 py-14 md:px-6 lg:py-20">
         <div className="mx-auto max-w-6xl rounded-[2rem] border border-[var(--border)] bg-[linear-gradient(135deg,rgba(244,239,229,0.95),rgba(255,255,255,0.96))] p-8 shadow-[0_22px_48px_rgba(17,17,17,0.07)] sm:p-10">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-start">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Profile</p>
-              <h1 className="mt-3 max-w-xl text-3xl font-semibold leading-tight tracking-[-0.04em] text-[var(--foreground)] sm:text-4xl">
-                Save your checkout details once.
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--muted)] sm:text-base">
-                Store your shipping information in your account so checkout can pre-fill your details automatically on
-                future orders.
-              </p>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-[1.75rem] border border-[var(--border)] bg-white/90 p-4 shadow-[0_12px_30px_rgba(17,17,17,0.04)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Account</p>
-                  <p className="mt-2 break-all text-sm font-semibold leading-6 text-[var(--foreground)]">
-                    {user?.email ?? "Signed in"}
-                  </p>
-                </div>
-                <div className="rounded-[1.75rem] border border-[var(--border)] bg-white/90 p-4 shadow-[0_12px_30px_rgba(17,17,17,0.04)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Security</p>
-                  <p className="mt-2 text-sm leading-6 text-[var(--foreground)]">
-                    Row-level security keeps every profile scoped to its owner.
-                  </p>
-                </div>
-                <div className="rounded-[1.75rem] border border-[var(--border)] bg-white/90 p-4 shadow-[0_12px_30px_rgba(17,17,17,0.04)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Checkout</p>
-                  <p className="mt-2 text-sm leading-6 text-[var(--foreground)]">
-                    Reuse the same saved name, phone, and address fields during checkout.
-                  </p>
-                </div>
-              </div>
-            </div>
+            
 
             <div className="rounded-[1.75rem] border border-[var(--border)] bg-white/90 p-6 shadow-[0_12px_30px_rgba(17,17,17,0.04)]">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Saved profile</p>
@@ -391,6 +361,37 @@ export default function ProfilePage() {
                 >
                   {isSigningOut ? "Logging out..." : "Logout"}
                 </button>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Profile</p>
+              <h1 className="mt-3 max-w-xl text-3xl font-semibold leading-tight tracking-[-0.04em] text-[var(--foreground)] sm:text-4xl">
+                Save your checkout details once.
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--muted)] sm:text-base">
+                Store your shipping information in your account so checkout can pre-fill your details automatically on
+                future orders.
+              </p>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-[1.75rem] border border-[var(--border)] bg-white/90 p-4 shadow-[0_12px_30px_rgba(17,17,17,0.04)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Account</p>
+                  <p className="mt-2 break-all text-sm font-semibold leading-6 text-[var(--foreground)]">
+                    {user?.email ?? "Signed in"}
+                  </p>
+                </div>
+                <div className="rounded-[1.75rem] border border-[var(--border)] bg-white/90 p-4 shadow-[0_12px_30px_rgba(17,17,17,0.04)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Security</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--foreground)]">
+                    Row-level security keeps every profile scoped to its owner.
+                  </p>
+                </div>
+                <div className="rounded-[1.75rem] border border-[var(--border)] bg-white/90 p-4 shadow-[0_12px_30px_rgba(17,17,17,0.04)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Checkout</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--foreground)]">
+                    Reuse the same saved name, phone, and address fields during checkout.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

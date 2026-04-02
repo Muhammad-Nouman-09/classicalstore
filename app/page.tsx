@@ -1,7 +1,8 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Suspense } from "react";
 import ClientProductCard from "@/components/ClientProductCard";
 import HomeOrderNotice from "@/components/HomeOrderNotice";
+import { buildCategoryDirectory, buildProductsFilterHref } from "@/lib/categorySystem";
 import { supabase } from "@/lib/supabase";
 import { formatPrice, mergeProductRatings } from "@/lib/productUtils";
 
@@ -140,45 +141,6 @@ const fallbackProducts: Product[] = [
   },
 ];
 
-const categories = [
-  {
-    name: "Clothes",
-    subtitle: "Tailored layers and everyday essentials",
-    image:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    name: "Shoes",
-    subtitle: "Statement pairs built for long days",
-    image:
-      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    name: "Bags",
-    subtitle: "Clean silhouettes with practical storage",
-    image:
-      "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    name: "Jewellery",
-    subtitle: "Finishing pieces with shine and texture",
-    image:
-      "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    name: "Cosmetics",
-    subtitle: "Glow-focused beauty and makeup picks",
-    image:
-      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    name: "Home & Skincare",
-    subtitle: "Daily rituals for calm, polished living",
-    image:
-      "https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=900&q=80",
-  },
-];
-
 const benefits = [
   { title: "Free delivery", text: "On orders above Rs 50 across major cities." },
   { title: "Easy returns", text: "Seven-day returns on eligible items." },
@@ -201,9 +163,48 @@ const testimonials = [
   },
 ];
 
+function TrustIcon({ title }: { title: string }) {
+  if (title === "Free delivery") {
+    return (
+      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M3 7h11v8H3z" />
+        <path d="M14 10h3l4 4v1h-7z" />
+        <circle cx="7.5" cy="18" r="1.5" />
+        <circle cx="17.5" cy="18" r="1.5" />
+      </svg>
+    );
+  }
+
+  if (title === "Easy returns") {
+    return (
+      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M8 7H4v4" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4 11a8 8 0 1 0 2.3-5.7L4 7" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (title === "Secure checkout") {
+    return (
+      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3Z" />
+        <path d="m9.5 12 1.7 1.7 3.8-4.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 8v4l3 2" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="8" />
+    </svg>
+  );
+}
+
 export default async function Home() {
   const products = await getProducts();
   const catalog = products.length ? products : fallbackProducts;
+  const categories = buildCategoryDirectory(catalog).slice(0, 6);
   const featuredProducts = catalog.slice(0, 4);
   const bestSellers = catalog.slice(4, 8).length ? catalog.slice(4, 8) : catalog.slice(0, 4);
   const heroProduct = catalog[0] ?? fallbackProducts[0];
@@ -230,7 +231,7 @@ export default async function Home() {
               </p>
               <div className="space-y-4">
                 <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-[-0.04em] text-[var(--foreground)] sm:text-5xl lg:text-6xl">
-                  Upgrade your style with modern fashion, beauty, and home essentials.
+                  Premium fashion at local prices. Delivered in 24h across Pakistan.
                 </h1>
                 <p className="max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
                   Classical Store is built for shopping, not browsing confusion. Discover curated outfits, jewellery,
@@ -331,7 +332,7 @@ export default async function Home() {
             {categories.map((category) => (
               <Link
                 key={category.name}
-                href="/products"
+                href={buildProductsFilterHref({ category: category.name })}
                 className="group relative isolate overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[#e9e0d1] shadow-[0_18px_44px_rgba(17,17,17,0.08)] transition hover:-translate-y-1"
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" aria-hidden />
@@ -433,8 +434,11 @@ export default async function Home() {
                 key={benefit.title}
                 className="rounded-[1.75rem] border border-[var(--border)] bg-white p-6 shadow-[0_16px_38px_rgba(17,17,17,0.05)]"
               >
-                <div className="inline-flex rounded-full border border-[var(--border)] bg-[var(--card-tint)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-                  Trust
+                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card-tint)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                  <span className="text-[#b8860b]">
+                    <TrustIcon title={benefit.title} />
+                  </span>
+                  
                 </div>
                 <h3 className="mt-4 text-xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">{benefit.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{benefit.text}</p>

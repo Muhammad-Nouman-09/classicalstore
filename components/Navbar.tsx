@@ -67,6 +67,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const currentCatalogQuery = searchParams.get("q") ?? "";
 
   useEffect(() => {
     const updateCartInfo = () => {
@@ -156,13 +157,8 @@ export default function Navbar() {
       return;
     }
 
-    if (pathname === "/products") {
-      setSearchQuery(searchParams.get("q") ?? "");
-      setSearchOpen(true);
-      return;
-    }
-
-    router.push("/products");
+    setSearchQuery(pathname === "/products" ? currentCatalogQuery : "");
+    setSearchOpen(true);
   };
 
   const AccountButton = (
@@ -197,29 +193,35 @@ export default function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[rgba(255,252,247,0.88)] backdrop-blur">
-      <div className="border-b border-[var(--border)] bg-[var(--card-tint)] px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">
-        Free delivery over Rs 50 and 20% off selected items this week
+    <header
+      className="sticky top-0 z-30 border-b border-[var(--border)] bg-[rgba(255,252,247,0.88)] backdrop-blur"
+      suppressHydrationWarning
+    >
+      <div
+        className="border-b border-[var(--border)] bg-[var(--card-tint)] px-4 py-1 text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--muted)]"
+        suppressHydrationWarning
+      >
+        Free delivery over Rs 2000 
       </div>
 
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6" suppressHydrationWarning>
         <Link href="/" className="flex items-center gap-3 text-[var(--foreground)]" onClick={closeMenu}>
-          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-strong)] bg-white text-sm font-semibold tracking-[0.26em] shadow-sm">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-strong)] bg-white text-sm font-semibold tracking-[0.26em] shadow-sm">
             CS
           </span>
-          <div>
+          <div suppressHydrationWarning>
             <p className="text-base font-semibold tracking-[-0.03em]">Classical Store</p>
             <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--muted)]">Fashion and lifestyle</p>
           </div>
         </Link>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 md:hidden" suppressHydrationWarning>
           <button className="icon-button text-[var(--foreground)]" aria-label="Search" onClick={handleSearchClick}>
             <SearchIcon />
           </button>
           {AccountButton}
           <button
-            className="inline-flex items-center justify-center rounded-full border border-[var(--border-strong)] p-3 text-[var(--foreground)]"
+            className="inline-flex items-center justify-center rounded-full border border-[var(--border-strong)] p-2.5 text-[var(--foreground)]"
             aria-label="Toggle navigation menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
@@ -249,7 +251,7 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-3 md:flex" suppressHydrationWarning>
           <button className="icon-button text-[var(--foreground)]" aria-label="Search" onClick={handleSearchClick}>
             <SearchIcon />
           </button>
@@ -276,7 +278,7 @@ export default function Navbar() {
       </div>
 
       {searchOpen ? (
-        <div className="border-t border-[var(--border)] bg-[rgba(255,252,247,0.96)]">
+        <div className="border-t border-[var(--border)] bg-[rgba(255,252,247,0.96)]" suppressHydrationWarning>
           <div className="mx-auto max-w-7xl px-4 py-4 md:px-6">
             <form className="flex flex-col gap-3 sm:flex-row" onSubmit={handleSearchSubmit}>
               <input
@@ -310,8 +312,9 @@ export default function Navbar() {
         className={`overflow-hidden border-t border-[var(--border)] bg-[rgba(255,252,247,0.96)] transition-all duration-300 md:hidden ${
           menuOpen ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"
         }`}
+        suppressHydrationWarning
       >
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4" suppressHydrationWarning>
           {navLinks.map((link) => (
             <Link
               key={link.label}
@@ -323,7 +326,9 @@ export default function Navbar() {
             </Link>
           ))}
 
-          <div className="mt-2 flex items-center gap-2">{CartButton}</div>
+          <div className="mt-2 flex items-center gap-2" suppressHydrationWarning>
+            {CartButton}
+          </div>
 
           <form className="mt-3 flex gap-3" onSubmit={handleSearchSubmit}>
             <input

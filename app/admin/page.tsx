@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AddProductForm from "@/components/AddProductForm";
+import CategoryManager from "@/components/CategoryManager";
 import OrdersList from "@/components/OrdersList";
 import RealTimeOrdersNotification from "@/components/RealTimeOrdersNotification";
 
@@ -25,11 +26,17 @@ type Product = {
   id: string;
   name: string;
   price: number;
+  category?: string | null;
+  subcategory?: string | null;
+  image?: string | null;
+  description?: string | null;
+  in_stock?: boolean | null;
 };
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<"orders" | "products">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "products" | "categories">("orders");
   const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState<string | null>(null);
@@ -101,7 +108,9 @@ export default function AdminPage() {
         return;
       }
 
-      const { data: productsData, error: productsError } = await supabase.from("products").select("id, name, price");
+      const { data: productsData, error: productsError } = await supabase
+        .from("products")
+        .select("id, name, price, category, subcategory, image, description, in_stock");
 
       if (productsError) {
         if (productsError.code === "42P01" || productsError.message?.includes("does not exist")) {
@@ -120,7 +129,16 @@ export default function AdminPage() {
       }
 
       const productsMap = (productsData || []).reduce<Record<string, Product>>((acc, product) => {
-        acc[product.id] = { id: product.id, name: product.name, price: product.price };
+        acc[product.id] = {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          category: product.category ?? null,
+          subcategory: product.subcategory ?? null,
+          image: product.image ?? null,
+          description: product.description ?? null,
+          in_stock: product.in_stock ?? true,
+        };
         return acc;
       }, {});
 
@@ -130,9 +148,11 @@ export default function AdminPage() {
       }));
 
       setOrders(mappedOrders);
+      setProducts(productsData || []);
       setConnectionError(null);
     } catch {
       setOrders([]);
+      setProducts([]);
       setConnectionError("Failed to load orders. Please check your Supabase connection and database tables.");
     } finally {
       setLoading(false);
@@ -247,6 +267,14 @@ export default function AdminPage() {
           >
             Add product
           </button>
+          <button
+            onClick={() => setActiveTab("categories")}
+            className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+              activeTab === "categories" ? "bg-[var(--foreground)] text-white" : "text-[var(--foreground)]"
+            }`}
+          >
+            Categories
+          </button>
         </div>
       </section>
 
@@ -260,7 +288,51 @@ export default function AdminPage() {
           />
         )}
 
-        {activeTab === "products" && <AddProductForm />}
+        {activeTab === "products" && (
+          <AddProductForm
+            existingProducts={products}
+            onProductAdded={(product) => {
+              setProducts((current) => [
+                {
+                  id: product.id ?? `draft-${Date.now()}`,
+                  name: product.name ?? "New product",
+                  price: typeof product.price === "number" ? product.price : 0,
+                  category: product.category ?? null,
+                  subcategory: product.subcategory ?? null,
+                  image: product.image ?? null,
+                  description: product.description ?? null,
+                  in_stock: product.in_stock ?? true,
+                },
+                ...current,
+              ]);
+            }}
+            onProductUpdated={(product) => {
+              if (!product.id) return;
+
+              setProducts((current) =>
+                current.map((item) =>
+                  item.id === product.id
+                    ? {
+                        ...item,
+                        name: product.name ?? item.name,
+                        price: typeof product.price === "number" ? product.price : item.price,
+                        category: product.category ?? null,
+                        subcategory: product.subcategory ?? null,
+                        image: product.image ?? null,
+                        description: product.description ?? null,
+                        in_stock: product.in_stock ?? true,
+                      }
+                    : item
+                )
+              );
+            }}
+            onProductDeleted={(productId) => {
+              setProducts((current) => current.filter((product) => product.id !== productId));
+            }}
+          />
+        )}
+
+        {activeTab === "categories" && <CategoryManager products={products} />}
       </section>
     </div>
   );
