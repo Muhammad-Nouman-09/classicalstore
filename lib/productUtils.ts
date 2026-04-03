@@ -9,6 +9,7 @@ export type ProductRecord = {
   rating?: number | null;
   rating_count?: number | null;
   in_stock?: boolean | null;
+  featured?: boolean | null;
 };
 
 type RatingRow = {

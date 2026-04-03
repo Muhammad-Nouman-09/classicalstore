@@ -109,9 +109,9 @@ export default function Loading() {
             {[...Array(6)].map((_, index) => (
               <div
                 key={index}
-                className="overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[#e9e0d1] p-5 shadow-[0_18px_44px_rgba(17,17,17,0.08)]"
+                className="aspect-[5/4] min-h-[260px] overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[#e9e0d1] p-5 shadow-[0_18px_44px_rgba(17,17,17,0.08)]"
               >
-                <SkeletonBlock className="h-72 w-full rounded-[1.5rem] bg-[rgba(255,255,255,0.3)]" />
+                <SkeletonBlock className="h-full w-full rounded-[1.5rem] bg-[rgba(255,255,255,0.3)]" />
                 <div className="mt-5 flex items-end justify-between gap-4">
                   <div className="w-full space-y-2">
                     <SkeletonBlock className="h-8 w-2/3" />
@@ -120,21 +120,6 @@ export default function Loading() {
                   <SkeletonBlock className="h-10 w-24 rounded-full" />
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-4 py-4 md:px-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-3">
-              <SkeletonBlock className="h-3 w-32 rounded-full" />
-              <SkeletonBlock className="h-10 w-80" />
-            </div>
-            <SkeletonBlock className="h-5 w-32 rounded-full" />
-          </div>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {[...Array(4)].map((_, index) => (
-              <ProductCardSkeleton key={index} />
             ))}
           </div>
         </section>
@@ -220,6 +205,21 @@ export default function Loading() {
                 <SkeletonBlock className="mt-2 h-4 w-full rounded-full" />
                 <SkeletonBlock className="mt-2 h-4 w-5/6 rounded-full" />
               </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-3">
+              <SkeletonBlock className="h-3 w-32 rounded-full" />
+              <SkeletonBlock className="h-10 w-80" />
+            </div>
+            <SkeletonBlock className="h-5 w-32 rounded-full" />
+          </div>
+          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+            {[...Array(4)].map((_, index) => (
+              <ProductCardSkeleton key={index} />
             ))}
           </div>
         </section>

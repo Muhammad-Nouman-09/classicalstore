@@ -15,8 +15,9 @@ function buildProductData(body: {
   inStock?: boolean;
   image?: string | null;
   description?: string | null;
+  featured?: boolean;
 }) {
-  const { name, price, category, subcategory, inStock, image, description } = body;
+  const { name, price, category, subcategory, inStock, image, description, featured } = body;
 
   if (!name || price === undefined || price === null || price === "") {
     return { error: "Name and price are required." };
@@ -34,6 +35,7 @@ function buildProductData(body: {
       category: category?.trim() || null,
       subcategory: subcategory?.trim() || null,
       in_stock: typeof inStock === "boolean" ? inStock : true,
+      featured: typeof featured === "boolean" ? featured : false,
       image: image?.trim() || null,
       description: description?.trim() || null,
     },

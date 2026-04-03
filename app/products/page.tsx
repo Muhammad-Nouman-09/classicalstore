@@ -86,7 +86,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const activeCategoryEntry = findCategoryEntry(categoryDirectory, matchedCategory);
 
   return (
-    <div className="mx-auto max-w-6xl px-2 py-8 md:px-4">
+    <div className="mx-auto min-w-[320px] max-w-6xl px-2 py-8 md:px-4">
       <section className="rounded-[2.25rem] border border-[var(--border)] bg-[linear-gradient(135deg,rgba(244,239,229,0.95),rgba(255,255,255,0.96))] px-6 py-10 shadow-[0_18px_44px_rgba(17,17,17,0.05)]">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Catalog</p>
         <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -226,7 +226,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             {filteredProducts.length} products
           </span>
         </div>
-        <div className="grid gap-4 sm:grid-cols-6 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {filteredProducts.map((product) => (
             <ClientProductCard key={product.id} product={product} />
           ))}

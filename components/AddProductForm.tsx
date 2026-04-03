@@ -13,6 +13,7 @@ type ProductCategoryRecord = {
   image?: string | null;
   description?: string | null;
   in_stock?: boolean | null;
+  featured?: boolean | null;
 };
 
 type ProductFormData = {
@@ -21,6 +22,7 @@ type ProductFormData = {
   category: string;
   subcategory: string;
   inStock: boolean;
+  featured: boolean;
   image: string;
   description: string;
 };
@@ -38,6 +40,7 @@ const emptyFormData: ProductFormData = {
   category: "",
   subcategory: "",
   inStock: true,
+  featured: false,
   image: "",
   description: "",
 };
@@ -48,7 +51,7 @@ export default function AddProductForm({
   onProductUpdated,
   onProductDeleted,
 }: AddProductFormProps) {
-  const [formData, setFormData] = useState<ProductFormData>(emptyFormData);
+  const [formData, setFormData] = useState<ProductFormData>({ ...emptyFormData });
   const [loading, setLoading] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -82,12 +85,12 @@ export default function AddProductForm({
     const productStillExists = existingProducts.some((product) => product.id === editingProductId);
     if (!productStillExists) {
       setEditingProductId(null);
-      setFormData(emptyFormData);
+      setFormData({ ...emptyFormData });
     }
   }, [editingProductId, existingProducts]);
 
   const resetForm = () => {
-    setFormData(emptyFormData);
+    setFormData({ ...emptyFormData });
     setEditingProductId(null);
     setUseCustomCategory(false);
     setUseCustomSubcategory(false);
@@ -128,6 +131,7 @@ export default function AddProductForm({
       category,
       subcategory,
       inStock: product.in_stock ?? true,
+      featured: product.featured ?? false,
       image: product.image ?? "",
       description: product.description ?? "",
     });
@@ -155,6 +159,7 @@ export default function AddProductForm({
         category: category || null,
         subcategory: subcategory || null,
         inStock: formData.inStock,
+        featured: formData.featured,
         image: formData.image.trim() || null,
         description: formData.description.trim() || null,
       };
@@ -414,9 +419,19 @@ export default function AddProductForm({
               </div>
             </div>
 
-            <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--muted)]">
-              Product categories here are shared with the products page filter, so new admin entries become storefront
-              filters too.
+            <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Homepage spotlight</p>
+              <label className="mt-3 flex cursor-pointer items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={Boolean(formData.featured)}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, featured: event.target.checked }))}
+                  className="mt-1 h-4 w-4 rounded border-[var(--border-strong)] text-[var(--foreground)] focus:ring-[var(--foreground)]"
+                />
+                <span className="text-sm leading-6 text-[var(--muted)]">
+                  Mark this product as featured/best seller so it can appear in the homepage spotlight section.
+                </span>
+              </label>
             </div>
           </div>
 
@@ -549,6 +564,11 @@ export default function AddProductForm({
                         >
                           {product.in_stock === false ? "Out of stock" : "In stock"}
                         </span>
+                        {product.featured ? (
+                          <span className="rounded-full bg-[#fff2df] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#a14f20]">
+                            Featured
+                          </span>
+                        ) : null}
                       </div>
                       <div className="flex flex-wrap gap-3 text-sm text-[var(--muted)]">
                         <span>Category: {product.category?.trim() || "Uncategorized"}</span>

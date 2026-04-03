@@ -22,7 +22,7 @@ export default function ClientProductCard({ product }: { product: Product }) {
   const normalizedProduct = normalizeProduct(product);
 
   return (
-    <article className="group mx-auto flex h-full w-full max-w-[80vw] flex-col overflow-hidden rounded-[2rem] border border-[var(--border)] bg-white shadow-[0_18px_44px_rgba(17,17,17,0.06)] transition hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(17,17,17,0.1)] sm:max-w-none">
+    <article className="group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[2rem] border border-[var(--border)] bg-white shadow-[0_18px_44px_rgba(17,17,17,0.06)] transition hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(17,17,17,0.1)]">
       <Link href={`/products/${normalizedProduct.id}`} className="relative block overflow-hidden bg-[var(--card-tint)]">
         <span className="absolute left-4 top-4 z-10 rounded-full border border-white/70 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
           Featured
@@ -101,14 +101,13 @@ export default function ClientProductCard({ product }: { product: Product }) {
           </div>
         </div>
 
-        <div className="mt-5 flex gap-3">
-          <AddToCartButton product={normalizedProduct} disabled={!normalizedProduct.in_stock} />
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <Link
             href={normalizedProduct.in_stock ? `/products/${normalizedProduct.id}#order-form` : `/products/${normalizedProduct.id}`}
-            className={`flex-1 rounded-full border px-4 py-3 text-center text-sm font-semibold transition ${
+            className={`flex-1 rounded-full px-4 py-3 text-center text-sm font-semibold shadow-[0_16px_30px_rgba(180,95,61,0.22)] transition ${
               normalizedProduct.in_stock
-                ? "border-[var(--border-strong)] text-[var(--foreground)] hover:border-[var(--foreground)]"
-                : "cursor-not-allowed border-[var(--border)] text-[var(--muted)]"
+                ? "bg-[var(--accent)] text-white hover:-translate-y-0.5 hover:brightness-110"
+                : "cursor-not-allowed bg-[var(--border)] text-[var(--muted)] shadow-none"
             }`}
             aria-disabled={!normalizedProduct.in_stock}
             onClick={(event) => {
@@ -119,6 +118,7 @@ export default function ClientProductCard({ product }: { product: Product }) {
           >
             {normalizedProduct.in_stock ? "Buy now" : "Unavailable"}
           </Link>
+          <AddToCartButton product={normalizedProduct} disabled={!normalizedProduct.in_stock} />
         </div>
       </div>
     </article>

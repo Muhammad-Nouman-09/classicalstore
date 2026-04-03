@@ -1,10 +1,11 @@
 ﻿import Link from "next/link";
 import { Suspense } from "react";
 import ClientProductCard from "@/components/ClientProductCard";
+import HeroCarousel, { type HeroSlide } from "@/components/HeroCarousel";
 import HomeOrderNotice from "@/components/HomeOrderNotice";
 import { buildCategoryDirectory, buildProductsFilterHref } from "@/lib/categorySystem";
 import { supabase } from "@/lib/supabase";
-import { formatPrice, mergeProductRatings } from "@/lib/productUtils";
+import { mergeProductRatings } from "@/lib/productUtils";
 
 export const revalidate = 0;
 
@@ -19,12 +20,50 @@ type Product = {
   rating?: number | null;
   rating_count?: number | null;
   in_stock?: boolean | null;
+  featured?: boolean | null;
 };
+
+const fallbackHeroSlides: HeroSlide[] = [
+  {
+    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1800&q=80",
+    alt: "Fashion collection background",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1800&q=80",
+    alt: "Women shopping fashion carousel image",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1800&q=80",
+    alt: "Modern fashion editorial background",
+  },
+];
+
+async function getHeroSlides(): Promise<HeroSlide[]> {
+  const { data, error } = await supabase
+    .from("hero_images")
+    .select("image_url, alt_text, sort_order")
+    .order("sort_order", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true, nullsFirst: false });
+
+  if (error) {
+    console.error("Failed to load hero images", error);
+    return fallbackHeroSlides;
+  }
+
+  const slides = (data ?? [])
+    .filter((item) => Boolean(item.image_url))
+    .map<HeroSlide>((item) => ({
+      image: item.image_url,
+      alt: item.alt_text?.trim() || "Hero carousel image",
+    }));
+
+  return slides.length > 0 ? slides : fallbackHeroSlides;
+}
 
 async function getProducts(): Promise<Product[]> {
   const primary = await supabase
     .from("products")
-    .select("id, name, price, image, description, category, subcategory, rating, in_stock")
+    .select("id, name, price, image, description, category, subcategory, rating, in_stock, featured")
     .order("name");
 
   if (!primary.error) {
@@ -35,7 +74,8 @@ async function getProducts(): Promise<Product[]> {
   if (
     primary.error?.message?.toLowerCase().includes("category") ||
     primary.error?.message?.toLowerCase().includes("rating") ||
-    primary.error?.message?.toLowerCase().includes("in_stock")
+    primary.error?.message?.toLowerCase().includes("in_stock") ||
+    primary.error?.message?.toLowerCase().includes("featured")
   ) {
     const fallback = await supabase.from("products").select("id, name, price, image, description, category, subcategory").order("name");
     if (!fallback.error) {
@@ -203,11 +243,15 @@ function TrustIcon({ title }: { title: string }) {
 
 export default async function Home() {
   const products = await getProducts();
+  const heroSlides = await getHeroSlides();
   const catalog = products.length ? products : fallbackProducts;
   const categories = buildCategoryDirectory(catalog).slice(0, 6);
-  const featuredProducts = catalog.slice(0, 4);
-  const bestSellers = catalog.slice(4, 8).length ? catalog.slice(4, 8) : catalog.slice(0, 4);
-  const heroProduct = catalog[0] ?? fallbackProducts[0];
+  const featuredPool = catalog.filter((product) => product.featured);
+  const featuredProducts = (featuredPool.length ? featuredPool : catalog).slice(0, 4);
+  const bestSellers =
+    catalog.filter((product) => !featuredProducts.some((featuredProduct) => featuredProduct.id === product.id)).slice(0, 4).length
+      ? catalog.filter((product) => !featuredProducts.some((featuredProduct) => featuredProduct.id === product.id)).slice(0, 4)
+      : featuredProducts;
 
   return (
     <div className="bg-[var(--background)] text-[var(--foreground)]">
@@ -215,106 +259,7 @@ export default async function Home() {
         <Suspense fallback={null}>
           <HomeOrderNotice />
         </Suspense>
-        <section className="relative overflow-hidden border-b border-[var(--border)] bg-[linear-gradient(135deg,rgba(244,239,229,0.95),rgba(255,255,255,0.92)_60%,rgba(233,224,209,0.75))]">
-          <div
-            className="absolute inset-0 opacity-60"
-            aria-hidden
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at top left, rgba(24,24,24,0.08), transparent 30%), radial-gradient(circle at bottom right, rgba(183,147,95,0.18), transparent 26%)",
-            }}
-          />
-          <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-[1.05fr_0.95fr] md:px-6 lg:py-20">
-            <div className="flex flex-col justify-center space-y-7">
-              <p className="inline-flex w-fit items-center rounded-full border border-[var(--border-strong)] bg-white/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--muted)]">
-                Shop Trendy Fashion and Lifestyle
-              </p>
-              <div className="space-y-4">
-                <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-[-0.04em] text-[var(--foreground)] sm:text-5xl lg:text-6xl">
-                  Premium fashion at local prices. Delivered in 24h across Pakistan.
-                </h1>
-                <p className="max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
-                  Classical Store is built for shopping, not browsing confusion. Discover curated outfits, jewellery,
-                  shoes, cosmetics, and skincare in a clean storefront that puts products first.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/products"
-                  className="inline-flex items-center justify-center rounded-full bg-[var(--foreground)] px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)]"
-                >
-                  Shop now
-                </Link>
-                <Link
-                  href="#featured-products"
-                  className="inline-flex items-center justify-center rounded-full border border-[var(--border-strong)] bg-white/80 px-6 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--foreground)]"
-                >
-                  Browse featured picks
-                </Link>
-              </div>
-              <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
-                <div className="rounded-3xl border border-[var(--border)] bg-white/85 p-4 shadow-[0_18px_40px_rgba(17,17,17,0.06)]">
-                  <p className="text-2xl font-semibold text-[var(--foreground)]">24h</p>
-                  <p className="text-sm text-[var(--muted)]">Dispatch on most in-stock orders</p>
-                </div>
-                <div className="rounded-3xl border border-[var(--border)] bg-white/85 p-4 shadow-[0_18px_40px_rgba(17,17,17,0.06)]">
-                  <p className="text-2xl font-semibold text-[var(--foreground)]">4.8/5</p>
-                  <p className="text-sm text-[var(--muted)]">Average rating from happy shoppers</p>
-                </div>
-                <div className="rounded-3xl border border-[var(--border)] bg-white/85 p-4 shadow-[0_18px_40px_rgba(17,17,17,0.06)]">
-                  <p className="text-2xl font-semibold text-[var(--foreground)]">20% Off</p>
-                  <p className="text-sm text-[var(--muted)]">Selected styles this week only</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
-              <article className="relative min-h-[420px] overflow-hidden rounded-[2rem] border border-white/70 bg-[#d9c9b2] shadow-[0_28px_80px_rgba(17,17,17,0.14)]">
-                <img src={heroProduct.image ?? fallbackProducts[0].image!} alt={heroProduct.name} className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" aria-hidden />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">New arrival</p>
-                  <div className="mt-2 flex items-end justify-between gap-4">
-                    <div>
-                      <h2 className="text-2xl font-semibold tracking-[-0.03em]">{heroProduct.name}</h2>
-                      <p className="mt-2 max-w-xs text-sm text-white/80">
-                        {heroProduct.description ?? "Refined pieces chosen to anchor the new season wardrobe."}
-                      </p>
-                    </div>
-                    <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
-                      {formatPrice(heroProduct.price)}
-                    </div>
-                  </div>
-                </div>
-              </article>
-
-              <div className="grid gap-4">
-                <article className="rounded-[2rem] border border-[var(--border)] bg-white p-6 shadow-[0_22px_48px_rgba(17,17,17,0.07)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Store focus</p>
-                  <h3 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-                    Fashion-led shopping that feels premium from the first click.
-                  </h3>
-                  <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-                    Strong imagery, clear pricing, and direct add-to-cart actions keep the experience commercial and easy to trust.
-                  </p>
-                </article>
-                <article className="overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--card-tint)] p-6 shadow-[0_22px_48px_rgba(17,17,17,0.07)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">This week&apos;s offer</p>
-                  <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">Flat 20% off</h3>
-                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                    Use the spotlight section to push bundles, limited drops, and conversion-friendly urgency.
-                  </p>
-                  <Link
-                    href="/products"
-                    className="mt-5 inline-flex items-center justify-center rounded-full border border-[var(--foreground)] px-5 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--foreground)] hover:text-white"
-                  >
-                    Shop the sale
-                  </Link>
-                </article>
-              </div>
-            </div>
-          </div>
-        </section>
+        <HeroCarousel slides={heroSlides} />
 
         <section id="categories" className="mx-auto max-w-7xl px-4 py-16 md:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -333,13 +278,13 @@ export default async function Home() {
               <Link
                 key={category.name}
                 href={buildProductsFilterHref({ category: category.name })}
-                className="group relative isolate overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[#e9e0d1] shadow-[0_18px_44px_rgba(17,17,17,0.08)] transition hover:-translate-y-1"
+                className="group relative isolate aspect-[5/4] min-h-[260px] w-full overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[#e9e0d1] shadow-[0_18px_44px_rgba(17,17,17,0.08)] transition hover:-translate-y-1"
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" aria-hidden />
                 <img
                   src={category.image}
                   alt={category.name}
-                  className="h-72 w-full object-cover transition duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-x-0 bottom-0 p-6 text-white">
                   <div className="flex items-center justify-between gap-4">
@@ -357,26 +302,25 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="featured-products" className="mx-auto max-w-7xl px-4 py-4 md:px-6">
+        <section id="featured-products" className="mx-auto max-w-7xl px-4 py-16 md:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Featured products</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">
-                Products users can understand in seconds
+                Best picks placed at the bottom for a final conversion push
               </h2>
             </div>
             <Link href="/products" className="text-sm font-semibold text-[var(--foreground)] underline-offset-4 hover:underline">
               View full catalog
             </Link>
           </div>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
             {featuredProducts.map((product) => (
               <ClientProductCard key={product.id} product={product} />
             ))}
           </div>
         </section>
-
-        <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+<section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
           <div className="rounded-[2.25rem] border border-[var(--border)] bg-[linear-gradient(135deg,#171717,#2b241d)] px-6 py-10 text-white shadow-[0_28px_80px_rgba(17,17,17,0.16)] lg:px-10">
             <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
               <div>
@@ -420,12 +364,13 @@ export default async function Home() {
               Repeating product visibility later on the page helps shoppers re-engage after the category and promo sections.
             </p>
           </div>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
             {bestSellers.map((product) => (
               <ClientProductCard key={product.id} product={product} />
             ))}
           </div>
         </section>
+        
 
         <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -438,7 +383,7 @@ export default async function Home() {
                   <span className="text-[#b8860b]">
                     <TrustIcon title={benefit.title} />
                   </span>
-                  
+
                 </div>
                 <h3 className="mt-4 text-xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">{benefit.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{benefit.text}</p>
@@ -479,6 +424,8 @@ export default async function Home() {
             ))}
           </div>
         </section>
+
+        
       </main>
     </div>
   );

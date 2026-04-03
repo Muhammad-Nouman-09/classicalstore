@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("Request body:", body);
 
-    const { name, price, category, subcategory, inStock, image, description } = body;
+    const { name, price, category, subcategory, inStock, image, description, featured } = body;
 
     if (!name || price === undefined || price === null || price === "") {
       return NextResponse.json({ error: "Name and price are required." }, { status: 400 });
@@ -37,6 +37,7 @@ export async function POST(req: Request) {
       category: category?.trim() || null,
       subcategory: subcategory?.trim() || null,
       in_stock: typeof inStock === "boolean" ? inStock : true,
+      featured: typeof featured === "boolean" ? featured : false,
       image: image?.trim() || null,
       description: description?.trim() || null,
     };
@@ -51,11 +52,12 @@ export async function POST(req: Request) {
         errorMessage = "Row Level Security policy violation. Please disable RLS or update policies in Supabase.";
       } else if (
         error.message?.includes("in_stock") ||
+        error.message?.includes("featured") ||
         error.message?.includes("category") ||
         error.message?.includes("subcategory")
       ) {
         errorMessage =
-          "Database product columns are missing. Please run add-product-rating-stock.sql and add-product-category-subcategory.sql in Supabase.";
+          "Database product columns are missing. Please run add-product-rating-stock.sql, add-product-category-subcategory.sql, and add-product-featured.sql in Supabase.";
       } else if (error.code === "23505") {
         errorMessage = "Duplicate entry. This product may already exist.";
       } else if (error.code === "23503") {
@@ -80,7 +82,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("products")
-      .select("id, name, price, category, subcategory, image, description, in_stock")
+      .select("id, name, price, category, subcategory, image, description, in_stock, featured")
       .order("created_at", { ascending: false, nullsFirst: false });
 
     if (error) {

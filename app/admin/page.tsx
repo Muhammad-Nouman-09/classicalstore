@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AddProductForm from "@/components/AddProductForm";
 import CategoryManager from "@/components/CategoryManager";
+import HeroImageManager from "@/components/HeroImageManager";
 import OrdersList from "@/components/OrdersList";
 import RealTimeOrdersNotification from "@/components/RealTimeOrdersNotification";
 
@@ -31,10 +32,11 @@ type Product = {
   image?: string | null;
   description?: string | null;
   in_stock?: boolean | null;
+  featured?: boolean | null;
 };
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<"orders" | "products" | "categories">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "products" | "categories" | "hero">("orders");
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
@@ -110,7 +112,7 @@ export default function AdminPage() {
 
       const { data: productsData, error: productsError } = await supabase
         .from("products")
-        .select("id, name, price, category, subcategory, image, description, in_stock");
+        .select("id, name, price, category, subcategory, image, description, in_stock, featured");
 
       if (productsError) {
         if (productsError.code === "42P01" || productsError.message?.includes("does not exist")) {
@@ -138,6 +140,7 @@ export default function AdminPage() {
           image: product.image ?? null,
           description: product.description ?? null,
           in_stock: product.in_stock ?? true,
+          featured: product.featured ?? false,
         };
         return acc;
       }, {});
@@ -275,6 +278,14 @@ export default function AdminPage() {
           >
             Categories
           </button>
+          <button
+            onClick={() => setActiveTab("hero")}
+            className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+              activeTab === "hero" ? "bg-[var(--foreground)] text-white" : "text-[var(--foreground)]"
+            }`}
+          >
+            Hero images
+          </button>
         </div>
       </section>
 
@@ -302,6 +313,7 @@ export default function AdminPage() {
                   image: product.image ?? null,
                   description: product.description ?? null,
                   in_stock: product.in_stock ?? true,
+                  featured: product.featured ?? false,
                 },
                 ...current,
               ]);
@@ -321,6 +333,7 @@ export default function AdminPage() {
                         image: product.image ?? null,
                         description: product.description ?? null,
                         in_stock: product.in_stock ?? true,
+                        featured: product.featured ?? false,
                       }
                     : item
                 )
@@ -333,6 +346,8 @@ export default function AdminPage() {
         )}
 
         {activeTab === "categories" && <CategoryManager products={products} />}
+
+        {activeTab === "hero" && <HeroImageManager />}
       </section>
     </div>
   );
