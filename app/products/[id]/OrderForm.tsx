@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import OrderProcessingModal from "@/components/OrderProcessingModal";
+import { writePendingOrderNotice } from "@/lib/orderNotice";
 import { supabase } from "@/lib/supabaseClient";
 import { formatPrice } from "@/lib/productUtils";
 import { isValidEmail, isValidPhone, MIN_PHONE_DIGITS } from "@/lib/orderValidation";
@@ -90,11 +91,10 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
       setEmail("");
       setAddress("");
       setQuantity(1);
-      const params = new URLSearchParams({ order: "success" });
-      if (userId) {
-        params.set("rate", productId);
-      }
-      router.push(`/?${params.toString()}`);
+      writePendingOrderNotice({
+        rateProductIds: userId ? [productId] : [],
+      });
+      router.push("/");
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to place order.");

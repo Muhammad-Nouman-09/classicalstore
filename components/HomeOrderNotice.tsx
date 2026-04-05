@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { readPendingOrderNotice, type PendingOrderNotice } from "@/lib/orderNotice";
 
 function resolveNoticeMessage(hasRatingPrompt: boolean) {
   return hasRatingPrompt
@@ -11,43 +12,70 @@ function resolveNoticeMessage(hasRatingPrompt: boolean) {
 }
 
 export default function HomeOrderNotice() {
+  const [hasLoadedNotice, setHasLoadedNotice] = useState(false);
+  const [notice, setNotice] = useState<PendingOrderNotice | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const orderStatus = searchParams.get("order");
   const rateProductsParam = searchParams.get("rate");
-  const rateProductIds = rateProductsParam
-    ? rateProductsParam
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean)
-    : [];
-  const firstRateProductId = rateProductIds[0] ?? null;
-  const visible = orderStatus === "success";
 
   useEffect(() => {
+    if (hasLoadedNotice) {
+      return;
+    }
+
+    const storedNotice = readPendingOrderNotice();
+
+    if (storedNotice) {
+      setNotice(storedNotice);
+      setHasLoadedNotice(true);
+      return;
+    }
+
     if (orderStatus !== "success") {
+      setHasLoadedNotice(true);
+      return;
+    }
+
+    const fallbackRateProductIds = rateProductsParam
+      ? rateProductsParam
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean)
+      : [];
+
+    setNotice({ rateProductIds: fallbackRateProductIds });
+    setHasLoadedNotice(true);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("order");
+    params.delete("rate");
+    params.delete("emailMessage");
+    const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.replace(nextUrl, { scroll: false });
+  }, [hasLoadedNotice, orderStatus, pathname, rateProductsParam, router, searchParams]);
+
+  useEffect(() => {
+    if (!notice) {
       return;
     }
 
     const timeout = window.setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("order");
-      params.delete("rate");
-      params.delete("emailMessage");
-      const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
-      router.replace(nextUrl, { scroll: false });
+      setNotice(null);
     }, 3000);
 
     return () => window.clearTimeout(timeout);
-  }, [orderStatus, pathname, router, searchParams]);
+  }, [notice]);
 
-  if (!visible) {
+  if (!notice) {
     return null;
   }
 
+  const rateProductIds = notice.rateProductIds;
   const hasRatingPrompt = rateProductIds.length > 0;
   const resolvedMessage = resolveNoticeMessage(hasRatingPrompt);
+  const firstRateProductId = rateProductIds[0] ?? null;
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[rgba(17,17,17,0.32)] px-4">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import OrderProcessingModal from "@/components/OrderProcessingModal";
+import { writePendingOrderNotice } from "@/lib/orderNotice";
 import { supabase } from "@/lib/supabaseClient";
 import { formatPrice } from "@/lib/productUtils";
 import { isValidEmail, isValidPhone, MIN_PHONE_DIGITS } from "@/lib/orderValidation";
@@ -110,6 +111,8 @@ export default function CartPage() {
     setCheckoutLoading(true);
 
     try {
+      const rateProductIds = userId ? cart.map((item) => item.id) : [];
+
       for (const item of cart) {
         const response = await fetch("/api/orders", {
           method: "POST",
@@ -134,11 +137,8 @@ export default function CartPage() {
       }
 
       clearCart();
-      const params = new URLSearchParams({ order: "success" });
-      if (userId && cart.length > 0) {
-        params.set("rate", cart.map((item) => item.id).join(","));
-      }
-      router.push(`/?${params.toString()}`);
+      writePendingOrderNotice({ rateProductIds });
+      router.push("/");
       router.refresh();
     } catch (error) {
       setCheckoutError(error instanceof Error ? error.message : "Checkout failed.");
