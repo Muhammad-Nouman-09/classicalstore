@@ -5,26 +5,25 @@ function SkeletonBlock({ className }: { className: string }) {
 function ProductCardSkeleton() {
   return (
     <article className="overflow-hidden rounded-[2rem] border border-[var(--border)] bg-white shadow-[0_18px_44px_rgba(17,17,17,0.06)]">
-      <div className="relative bg-[var(--card-tint)] p-4">
-        <SkeletonBlock className="h-7 w-24 rounded-full" />
-        <SkeletonBlock className="mt-4 aspect-[4/5] w-full rounded-[1.5rem]" />
+      <div className="relative bg-[var(--card-tint)] p-2.5">
+        <SkeletonBlock className="h-5 w-16 rounded-full" />
+        <SkeletonBlock className="mt-2.5 aspect-square w-full rounded-[1.5rem]" />
       </div>
-      <div className="space-y-4 p-5">
-        <div className="space-y-2">
-          <SkeletonBlock className="h-7 w-3/4" />
+      <div className="space-y-2.5 p-3">
+        <div className="space-y-1.5">
+          <SkeletonBlock className="h-5 w-3/4" />
           <SkeletonBlock className="h-4 w-full rounded-full" />
-          <SkeletonBlock className="h-4 w-5/6 rounded-full" />
         </div>
-        <div className="flex items-end justify-between gap-4">
+        <div className="flex items-end justify-between gap-3">
           <div className="space-y-2">
             <SkeletonBlock className="h-3 w-14 rounded-full" />
-            <SkeletonBlock className="h-8 w-24" />
+            <SkeletonBlock className="h-6 w-20" />
           </div>
-          <SkeletonBlock className="h-8 w-20 rounded-full" />
+          <SkeletonBlock className="h-6 w-16 rounded-full" />
         </div>
-        <div className="flex gap-3">
-          <SkeletonBlock className="h-12 flex-1 rounded-full" />
-          <SkeletonBlock className="h-12 flex-1 rounded-full" />
+        <div className="grid grid-cols-2 gap-2">
+          <SkeletonBlock className="h-9 rounded-full" />
+          <SkeletonBlock className="h-9 rounded-full" />
         </div>
       </div>
     </article>

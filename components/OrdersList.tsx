@@ -7,6 +7,7 @@ type Order = {
   id: string;
   name: string;
   phone: string;
+  email: string;
   address: string;
   product_id: string;
   quantity: number;
@@ -113,6 +114,7 @@ export default function OrdersList({ orders, loading, onStatusUpdate, updatingOr
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Customer</p>
                     <p className="mt-2 text-base font-semibold text-[var(--foreground)]">{order.name}</p>
                     <p className="mt-1 text-sm text-[var(--muted)]">{order.phone}</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">{order.email}</p>
                     <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{order.address}</p>
                   </div>
                   <div>

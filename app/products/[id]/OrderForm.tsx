@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { formatPrice } from "@/lib/productUtils";
+import { isValidEmail, isValidPhone, MIN_PHONE_DIGITS } from "@/lib/orderValidation";
 
 type OrderFormProps = {
   productId: string;
@@ -15,6 +16,7 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState<string | null>(null);
@@ -42,6 +44,22 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
 
   const handleSubmit = async () => {
     setMessage(null);
+
+    if (!name.trim() || !phone.trim() || !email.trim() || !address.trim()) {
+      setMessage("Please fill in your name, phone, email, and address.");
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      setMessage(`Phone number must contain at least ${MIN_PHONE_DIGITS} digits.`);
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+
     setIsPending(true);
 
     try {
@@ -53,6 +71,7 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
         body: JSON.stringify({
           name: name.trim(),
           phone: phone.trim(),
+          email: email.trim(),
           address: address.trim(),
           productId,
           quantity,
@@ -67,9 +86,14 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
 
       setName("");
       setPhone("");
+      setEmail("");
       setAddress("");
       setQuantity(1);
       const params = new URLSearchParams({ order: "success" });
+      params.set("email", payload.emailStatus || "skipped");
+      if (payload.emailMessage) {
+        params.set("emailMessage", payload.emailMessage);
+      }
       if (userId) {
         params.set("rate", productId);
       }
@@ -108,6 +132,7 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
         <label className="block text-sm font-semibold text-[var(--foreground)]">
           Name
           <input
+            required
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
@@ -118,16 +143,32 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
         <label className="block text-sm font-semibold text-[var(--foreground)]">
           Phone
           <input
+            type="tel"
+            required
+            minLength={MIN_PHONE_DIGITS}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
-            placeholder="+1 555 123 4567"
+            placeholder="03xxxxxxxxx"
+          />
+        </label>
+
+        <label className="block text-sm font-semibold text-[var(--foreground)]">
+          Email
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
+            placeholder="you@example.com"
           />
         </label>
 
         <label className="block text-sm font-semibold text-[var(--foreground)]">
           Address
           <textarea
+            required
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
@@ -141,6 +182,7 @@ export default function OrderForm({ productId, productName, price }: OrderFormPr
           <input
             type="number"
             min={1}
+            required
             value={quantity}
             onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
             className="mt-2 w-28 rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"

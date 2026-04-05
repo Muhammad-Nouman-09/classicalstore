@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { buildProductsFilterHref } from "@/lib/categorySystem";
 import { supabase } from "@/lib/supabase";
 import { formatPrice } from "@/lib/productUtils";
 
@@ -16,13 +17,12 @@ type CartItem = {
 };
 
 const navLinks = [
-  { href: "/products", label: "New In" },
-  { href: "/products", label: "Women" },
-  { href: "/products", label: "Shoes" },
-  { href: "/products", label: "Accessories" },
-  { href: "/products", label: "Beauty" },
-  { href: "#categories", label: "Categories" },
-  { href: "#best-sellers", label: "Sale" },
+  { href: buildProductsFilterHref({ category: "Clothes" }), label: "Clothes" },
+  { href: buildProductsFilterHref({ category: "Bags" }), label: "Bags" },
+  { href: buildProductsFilterHref({ category: "Cosmetics" }), label: "Cosmetics" },
+  { href: buildProductsFilterHref({ category: "Jewellery" }), label: "Jewellery" },
+  { href: buildProductsFilterHref({ category: "Accessories" }), label: "Accessories" },
+  { href: buildProductsFilterHref({ category: "Shoes" }), label: "Shoes" },
 ];
 
 const ADMIN_EMAILS = ["mnouman.developer@gmail.com", "cclassicalstore@gmail.com"];

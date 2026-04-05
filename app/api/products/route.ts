@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("Request body:", body);
 
-    const { name, price, category, subcategory, inStock, image, description, featured } = body;
+    const { name, price, category, subcategory, inStock, image, description, shortNote, showShortNote, featured } = body;
 
     if (!name || price === undefined || price === null || price === "") {
       return NextResponse.json({ error: "Name and price are required." }, { status: 400 });
@@ -40,6 +40,8 @@ export async function POST(req: Request) {
       featured: typeof featured === "boolean" ? featured : false,
       image: image?.trim() || null,
       description: description?.trim() || null,
+      short_note: shortNote?.trim() || null,
+      show_short_note: typeof showShortNote === "boolean" ? showShortNote : false,
     };
 
     const { data, error } = await supabase.from("products").insert(productData).select().single();
@@ -57,7 +59,7 @@ export async function POST(req: Request) {
         error.message?.includes("subcategory")
       ) {
         errorMessage =
-          "Database product columns are missing. Please run add-product-rating-stock.sql, add-product-category-subcategory.sql, and add-product-featured.sql in Supabase.";
+          "Database product columns are missing. Please run the product update SQL scripts in Supabase, including the short note migration.";
       } else if (error.code === "23505") {
         errorMessage = "Duplicate entry. This product may already exist.";
       } else if (error.code === "23503") {
@@ -82,7 +84,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("products")
-      .select("id, name, price, category, subcategory, image, description, in_stock, featured")
+      .select("id, name, price, category, subcategory, image, description, short_note, show_short_note, in_stock, featured")
       .order("created_at", { ascending: false, nullsFirst: false });
 
     if (error) {

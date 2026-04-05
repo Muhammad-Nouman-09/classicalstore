@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { buildCategoryDirectory } from "@/lib/categorySystem";
 import { formatPrice } from "@/lib/productUtils";
 
@@ -12,6 +12,8 @@ type ProductCategoryRecord = {
   subcategory?: string | null;
   image?: string | null;
   description?: string | null;
+  short_note?: string | null;
+  show_short_note?: boolean | null;
   in_stock?: boolean | null;
   featured?: boolean | null;
 };
@@ -25,6 +27,8 @@ type ProductFormData = {
   featured: boolean;
   image: string;
   description: string;
+  shortNote: string;
+  showShortNote: boolean;
 };
 
 type AddProductFormProps = {
@@ -43,6 +47,8 @@ const emptyFormData: ProductFormData = {
   featured: false,
   image: "",
   description: "",
+  shortNote: "",
+  showShortNote: false,
 };
 
 export default function AddProductForm({
@@ -51,6 +57,8 @@ export default function AddProductForm({
   onProductUpdated,
   onProductDeleted,
 }: AddProductFormProps) {
+  const formCardRef = useRef<HTMLDivElement | null>(null);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState<ProductFormData>({ ...emptyFormData });
   const [loading, setLoading] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
@@ -134,10 +142,21 @@ export default function AddProductForm({
       featured: product.featured ?? false,
       image: product.image ?? "",
       description: product.description ?? "",
+      shortNote: product.short_note ?? "",
+      showShortNote: product.show_short_note ?? false,
     });
     setUseCustomCategory(Boolean(category) && !hasKnownCategory);
     setUseCustomSubcategory(Boolean(subcategory) && !hasKnownSubcategory);
     setMessage(null);
+
+    // Bring the edit form back into view so the admin can immediately see the selected product details.
+    window.requestAnimationFrame(() => {
+      formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.setTimeout(() => {
+        nameInputRef.current?.focus();
+        nameInputRef.current?.select();
+      }, 250);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -162,6 +181,8 @@ export default function AddProductForm({
         featured: formData.featured,
         image: formData.image.trim() || null,
         description: formData.description.trim() || null,
+        shortNote: formData.shortNote.trim() || null,
+        showShortNote: formData.showShortNote,
       };
 
       const response = await fetch(editingProductId ? `/api/products/${editingProductId}` : "/api/products", {
@@ -233,7 +254,10 @@ export default function AddProductForm({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[2rem] border border-[var(--border)] bg-white p-6 shadow-[0_18px_44px_rgba(17,17,17,0.05)]">
+      <div
+        ref={formCardRef}
+        className="rounded-[2rem] border border-[var(--border)] bg-white p-6 shadow-[0_18px_44px_rgba(17,17,17,0.05)]"
+      >
         <div className="mb-6">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">Product entry</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)]">
@@ -263,6 +287,7 @@ export default function AddProductForm({
               Product name
             </label>
             <input
+              ref={nameInputRef}
               type="text"
               id="name"
               name="name"
@@ -465,6 +490,41 @@ export default function AddProductForm({
             />
           </div>
 
+          <div className="rounded-[1rem] border border-[var(--border)] bg-[var(--background)] p-4">
+            <div className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="shortNote" className="mb-2 block text-sm font-semibold text-[var(--foreground)]">
+                  Short note
+                </label>
+                <input
+                  type="text"
+                  id="shortNote"
+                  name="shortNote"
+                  value={formData.shortNote}
+                  onChange={handleInputChange}
+                  maxLength={160}
+                  className="w-full rounded-[1rem] border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
+                  placeholder="Optional note shown on the product detail page"
+                />
+                <p className="mt-2 text-xs leading-6 text-[var(--muted)]">
+                  Add a short optional line for the product detail page. Leave it empty if you do not want to use it.
+                </p>
+              </div>
+
+              <label className="flex cursor-pointer items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={Boolean(formData.showShortNote)}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, showShortNote: event.target.checked }))}
+                  className="mt-1 h-4 w-4 rounded border-[var(--border-strong)] text-[var(--foreground)] focus:ring-[var(--foreground)]"
+                />
+                <span className="text-sm leading-6 text-[var(--muted)]">
+                  Show this short note on the product detail page. Customers only see it when this is enabled.
+                </span>
+              </label>
+            </div>
+          </div>
+
           <div className="flex flex-wrap justify-end gap-3">
             {editingProductId ? (
               <button
@@ -576,6 +636,12 @@ export default function AddProductForm({
                       </div>
                       {product.description ? (
                         <p className="max-w-3xl text-sm leading-6 text-[var(--muted)]">{product.description}</p>
+                      ) : null}
+                      {product.short_note ? (
+                        <p className="max-w-3xl text-sm leading-6 text-[var(--foreground)]">
+                          Note: {product.short_note}
+                          {product.show_short_note ? " (visible on product page)" : " (hidden from product page)"}
+                        </p>
                       ) : null}
                     </div>
 

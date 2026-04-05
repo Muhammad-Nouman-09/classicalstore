@@ -24,10 +24,10 @@ export default function ClientProductCard({ product }: { product: Product }) {
   return (
     <article className="group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[2rem] border border-[var(--border)] bg-white shadow-[0_18px_44px_rgba(17,17,17,0.06)] transition hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(17,17,17,0.1)]">
       <Link href={`/products/${normalizedProduct.id}`} className="relative block overflow-hidden bg-[var(--card-tint)]">
-        <span className="absolute left-4 top-4 z-10 rounded-full border border-white/70 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+        <span className="absolute left-2.5 top-2.5 z-10 rounded-full border border-white/70 bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
           Featured
         </span>
-        <div className="aspect-[4/5] overflow-hidden">
+        <div className="aspect-square overflow-hidden">
           {normalizedProduct.image ? (
             <img
               src={normalizedProduct.image}
@@ -40,13 +40,13 @@ export default function ClientProductCard({ product }: { product: Product }) {
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col p-5">
+      <div className="flex flex-1 flex-col p-3">
         {(normalizedProduct.category?.trim() || normalizedProduct.subcategory?.trim()) && (
-          <div className="mb-3 flex flex-wrap gap-2">
+          <div className="mb-1.5 flex flex-wrap gap-1">
             {normalizedProduct.category?.trim() ? (
               <Link
                 href={buildProductsFilterHref({ category: normalizedProduct.category })}
-                className="rounded-full border border-[var(--border)] bg-[var(--card-tint)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--foreground)] transition hover:border-[var(--foreground)]"
+                className="rounded-full border border-[var(--border)] bg-[var(--card-tint)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--foreground)] transition hover:border-[var(--foreground)]"
               >
                 {normalizedProduct.category.trim()}
               </Link>
@@ -57,7 +57,7 @@ export default function ClientProductCard({ product }: { product: Product }) {
                   category: normalizedProduct.category,
                   subcategory: normalizedProduct.subcategory,
                 })}
-                className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)] transition hover:border-[var(--foreground)] hover:text-[var(--foreground)]"
+                className="rounded-full border border-[var(--border)] bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)] transition hover:border-[var(--foreground)] hover:text-[var(--foreground)]"
               >
                 {normalizedProduct.subcategory.trim()}
               </Link>
@@ -65,14 +65,16 @@ export default function ClientProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        <Link href={`/products/${normalizedProduct.id}`} className="space-y-2">
-          <h3 className="text-xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">{normalizedProduct.name}</h3>
-          <p className="line-clamp-2 text-sm leading-6 text-[var(--muted)]">
+        <Link href={`/products/${normalizedProduct.id}`} className="space-y-1">
+          <h3 className="line-clamp-2 min-h-[2.75rem] text-base font-semibold tracking-[-0.03em] text-[var(--foreground)] sm:text-[1.05rem]">
+            {normalizedProduct.name}
+          </h3>
+          <p className="line-clamp-1 text-[13px] leading-5 text-[var(--muted)]">
             {normalizedProduct.description || "A polished store essential for effortless everyday styling."}
           </p>
         </Link>
 
-        <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="mt-2.5 flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Rating</p>
             <p className="mt-1 text-sm font-semibold text-[var(--foreground)]">
@@ -82,7 +84,7 @@ export default function ClientProductCard({ product }: { product: Product }) {
             </p>
           </div>
           <p
-            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
+            className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
               normalizedProduct.in_stock
                 ? "bg-[var(--card-tint)] text-[var(--muted)]"
                 : "bg-red-50 text-red-700"
@@ -92,19 +94,19 @@ export default function ClientProductCard({ product }: { product: Product }) {
           </p>
         </div>
 
-        <div className="mt-4 flex items-end justify-between gap-4">
+        <div className="mt-2 flex items-end justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Price</p>
-            <p className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
+            <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-[var(--foreground)] sm:text-[1.35rem]">
               {formatPrice(normalizedProduct.price)}
             </p>
           </div>
         </div>
 
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-3 grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-1.5">
           <Link
             href={normalizedProduct.in_stock ? `/products/${normalizedProduct.id}#order-form` : `/products/${normalizedProduct.id}`}
-            className={`flex-1 rounded-full px-4 py-3 text-center text-sm font-semibold shadow-[0_16px_30px_rgba(180,95,61,0.22)] transition ${
+            className={`flex items-center justify-center rounded-full px-3 py-2 text-center text-[13px] font-semibold shadow-[0_16px_30px_rgba(180,95,61,0.22)] transition ${
               normalizedProduct.in_stock
                 ? "bg-[var(--accent)] text-white hover:-translate-y-0.5 hover:brightness-110"
                 : "cursor-not-allowed bg-[var(--border)] text-[var(--muted)] shadow-none"
@@ -118,7 +120,11 @@ export default function ClientProductCard({ product }: { product: Product }) {
           >
             {normalizedProduct.in_stock ? "Buy now" : "Unavailable"}
           </Link>
-          <AddToCartButton product={normalizedProduct} disabled={!normalizedProduct.in_stock} />
+          <AddToCartButton
+            product={normalizedProduct}
+            disabled={!normalizedProduct.in_stock}
+            className="px-3 py-2 text-[13px]"
+          />
         </div>
       </div>
     </article>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { formatPrice } from "@/lib/productUtils";
+import { isValidEmail, isValidPhone, MIN_PHONE_DIGITS } from "@/lib/orderValidation";
 
 type CartItem = {
   id: string;
@@ -23,6 +24,7 @@ export default function CartPage() {
   const [customer, setCustomer] = useState({
     name: "",
     phone: "",
+    email: "",
     address: "",
   });
   const [userId, setUserId] = useState<string | null>(null);
@@ -83,8 +85,18 @@ export default function CartPage() {
   };
 
   const handleCheckout = async () => {
-    if (!customer.name.trim() || !customer.phone.trim() || !customer.address.trim()) {
-      setCheckoutError("Please fill in your name, phone, and address before checkout.");
+    if (!customer.name.trim() || !customer.phone.trim() || !customer.email.trim() || !customer.address.trim()) {
+      setCheckoutError("Please fill in your name, phone, email, and address before checkout.");
+      return;
+    }
+
+    if (!isValidPhone(customer.phone)) {
+      setCheckoutError(`Phone number must contain at least ${MIN_PHONE_DIGITS} digits.`);
+      return;
+    }
+
+    if (!isValidEmail(customer.email)) {
+      setCheckoutError("Please enter a valid email address.");
       return;
     }
 
@@ -97,6 +109,9 @@ export default function CartPage() {
     setCheckoutLoading(true);
 
     try {
+      let checkoutEmailStatus: "sent" | "skipped" | "failed" = "sent";
+      let checkoutEmailMessage: string | null = null;
+
       for (const item of cart) {
         const response = await fetch("/api/orders", {
           method: "POST",
@@ -106,6 +121,7 @@ export default function CartPage() {
           body: JSON.stringify({
             name: customer.name.trim(),
             phone: customer.phone.trim(),
+            email: customer.email.trim(),
             address: customer.address.trim(),
             productId: item.id,
             quantity: item.quantity,
@@ -117,10 +133,22 @@ export default function CartPage() {
         if (!response.ok) {
           throw new Error(payload.error || "Failed to place order.");
         }
+
+        if (payload.emailStatus === "failed") {
+          checkoutEmailStatus = "failed";
+          checkoutEmailMessage = payload.emailMessage || "Order confirmation email failed.";
+        } else if (payload.emailStatus === "skipped" && checkoutEmailStatus !== "failed") {
+          checkoutEmailStatus = "skipped";
+          checkoutEmailMessage = payload.emailMessage || checkoutEmailMessage;
+        }
       }
 
       clearCart();
       const params = new URLSearchParams({ order: "success" });
+      params.set("email", checkoutEmailStatus);
+      if (checkoutEmailMessage) {
+        params.set("emailMessage", checkoutEmailMessage);
+      }
       if (userId && cart.length > 0) {
         params.set("rate", cart.map((item) => item.id).join(","));
       }
@@ -265,6 +293,7 @@ export default function CartPage() {
               <label className="block text-sm font-semibold text-[var(--foreground)]">
                 Name
                 <input
+                  required
                   value={customer.name}
                   onChange={(e) => setCustomer((current) => ({ ...current, name: e.target.value }))}
                   className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
@@ -275,16 +304,32 @@ export default function CartPage() {
               <label className="block text-sm font-semibold text-[var(--foreground)]">
                 Phone
                 <input
+                  type="tel"
+                  required
+                  minLength={MIN_PHONE_DIGITS}
                   value={customer.phone}
                   onChange={(e) => setCustomer((current) => ({ ...current, phone: e.target.value }))}
                   className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
-                  placeholder="+1 555 123 4567"
+                  placeholder="03xxxxxxxxx"
+                />
+              </label>
+
+              <label className="block text-sm font-semibold text-[var(--foreground)]">
+                Email
+                <input
+                  type="email"
+                  required
+                  value={customer.email}
+                  onChange={(e) => setCustomer((current) => ({ ...current, email: e.target.value }))}
+                  className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
+                  placeholder="you@example.com"
                 />
               </label>
 
               <label className="block text-sm font-semibold text-[var(--foreground)]">
                 Address
                 <textarea
+                  required
                   value={customer.address}
                   onChange={(e) => setCustomer((current) => ({ ...current, address: e.target.value }))}
                   className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"

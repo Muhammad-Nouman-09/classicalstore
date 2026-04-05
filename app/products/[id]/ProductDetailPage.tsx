@@ -15,6 +15,8 @@ type Product = {
   price: number;
   image: string | null;
   description: string | null;
+  short_note?: string | null;
+  show_short_note?: boolean | null;
   rating?: number | null;
   rating_count?: number | null;
   in_stock?: boolean | null;
@@ -61,6 +63,8 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
         price: 85,
         image: null,
         description: "Relaxed tailoring designed for clean, all-day styling.",
+        short_note: null,
+        show_short_note: false,
         rating: 4.7,
         rating_count: 12,
         in_stock: true,
@@ -71,6 +75,8 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
         price: 64,
         image: null,
         description: "Everyday beauty picks curated for glow and ease.",
+        short_note: null,
+        show_short_note: false,
         rating: 4.6,
         rating_count: 9,
         in_stock: true,
@@ -81,6 +87,8 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
         price: 48,
         image: null,
         description: "A polished set of extras to complete your look.",
+        short_note: null,
+        show_short_note: false,
         rating: 4.4,
         rating_count: 6,
         in_stock: false,
@@ -96,13 +104,21 @@ async function getProduct(id: string | undefined): Promise<Product | null> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, price, image, description, rating, in_stock")
+    .select("id, name, price, image, description, short_note, show_short_note, in_stock")
     .eq("id", id)
     .single();
 
   if (error) {
-    if (error.message?.toLowerCase().includes("rating") || error.message?.toLowerCase().includes("in_stock")) {
-      const fallback = await supabase.from("products").select("id, name, price, image, description").eq("id", id).single();
+    if (
+      error.message?.toLowerCase().includes("in_stock") ||
+      error.message?.toLowerCase().includes("short_note") ||
+      error.message?.toLowerCase().includes("show_short_note")
+    ) {
+      const fallback = await supabase
+        .from("products")
+        .select("id, name, price, image, description, short_note, show_short_note")
+        .eq("id", id)
+        .single();
       if (fallback.error) {
         if (fallback.error.code === "PGRST116") return null;
         throw new Error(`Failed to load product: ${fallback.error.message}`);
@@ -178,6 +194,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
             <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
               {normalizedProduct.description || "A curated fashion and lifestyle piece designed to fit clean modern styling."}
             </p>
+            {normalizedProduct.show_short_note && normalizedProduct.short_note ? (
+              <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--card-tint)] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Short note</p>
+                <p className="mt-2 text-sm font-medium leading-6 text-[var(--foreground)]">{normalizedProduct.short_note}</p>
+              </div>
+            ) : null}
 
             <div className="mt-6">
               <ProductRating

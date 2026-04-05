@@ -11,7 +11,13 @@ type Product = {
 
 type CartItem = Product & { quantity: number };
 
-export default function AddToCartButton({ product, disabled = false }: { product: Product; disabled?: boolean }) {
+type AddToCartButtonProps = {
+  product: Product;
+  disabled?: boolean;
+  className?: string;
+};
+
+export default function AddToCartButton({ product, disabled = false, className = "" }: AddToCartButtonProps) {
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
@@ -44,7 +50,7 @@ export default function AddToCartButton({ product, disabled = false }: { product
     <button
       onClick={addToCart}
       disabled={disabled}
-      className="flex-1 rounded-full border border-[var(--border-strong)] bg-white px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-not-allowed disabled:border-[var(--border)] disabled:text-[var(--muted)] disabled:opacity-60 disabled:hover:translate-y-0"
+      className={`flex-1 rounded-full border border-[var(--border-strong)] bg-white px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-not-allowed disabled:border-[var(--border)] disabled:text-[var(--muted)] disabled:opacity-60 disabled:hover:translate-y-0 ${className}`}
     >
       {disabled ? "Out of stock" : added ? "Added!" : "Add to cart"}
     </button>

@@ -15,9 +15,11 @@ function buildProductData(body: {
   inStock?: boolean;
   image?: string | null;
   description?: string | null;
+  shortNote?: string | null;
+  showShortNote?: boolean;
   featured?: boolean;
 }) {
-  const { name, price, category, subcategory, inStock, image, description, featured } = body;
+  const { name, price, category, subcategory, inStock, image, description, shortNote, showShortNote, featured } = body;
 
   if (!name || price === undefined || price === null || price === "") {
     return { error: "Name and price are required." };
@@ -38,6 +40,8 @@ function buildProductData(body: {
       featured: typeof featured === "boolean" ? featured : false,
       image: image?.trim() || null,
       description: description?.trim() || null,
+      short_note: shortNote?.trim() || null,
+      show_short_note: typeof showShortNote === "boolean" ? showShortNote : false,
     },
   };
 }

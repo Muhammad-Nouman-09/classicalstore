@@ -12,6 +12,7 @@ type Order = {
   id: string;
   name: string;
   phone: string;
+  email: string;
   address: string;
   product_id: string;
   quantity: number;
@@ -31,6 +32,8 @@ type Product = {
   subcategory?: string | null;
   image?: string | null;
   description?: string | null;
+  short_note?: string | null;
+  show_short_note?: boolean | null;
   in_stock?: boolean | null;
   featured?: boolean | null;
 };
@@ -112,7 +115,7 @@ export default function AdminPage() {
 
       const { data: productsData, error: productsError } = await supabase
         .from("products")
-        .select("id, name, price, category, subcategory, image, description, in_stock, featured");
+        .select("id, name, price, category, subcategory, image, description, short_note, show_short_note, in_stock, featured");
 
       if (productsError) {
         if (productsError.code === "42P01" || productsError.message?.includes("does not exist")) {
@@ -139,6 +142,8 @@ export default function AdminPage() {
           subcategory: product.subcategory ?? null,
           image: product.image ?? null,
           description: product.description ?? null,
+          short_note: product.short_note ?? null,
+          show_short_note: product.show_short_note ?? false,
           in_stock: product.in_stock ?? true,
           featured: product.featured ?? false,
         };
