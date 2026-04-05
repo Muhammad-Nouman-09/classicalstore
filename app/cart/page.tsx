@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import OrderProcessingModal from "@/components/OrderProcessingModal";
 import { supabase } from "@/lib/supabaseClient";
 import { formatPrice } from "@/lib/productUtils";
 import { isValidEmail, isValidPhone, MIN_PHONE_DIGITS } from "@/lib/orderValidation";
@@ -109,9 +110,6 @@ export default function CartPage() {
     setCheckoutLoading(true);
 
     try {
-      let checkoutEmailStatus: "sent" | "skipped" | "failed" = "sent";
-      let checkoutEmailMessage: string | null = null;
-
       for (const item of cart) {
         const response = await fetch("/api/orders", {
           method: "POST",
@@ -133,22 +131,10 @@ export default function CartPage() {
         if (!response.ok) {
           throw new Error(payload.error || "Failed to place order.");
         }
-
-        if (payload.emailStatus === "failed") {
-          checkoutEmailStatus = "failed";
-          checkoutEmailMessage = payload.emailMessage || "Order confirmation email failed.";
-        } else if (payload.emailStatus === "skipped" && checkoutEmailStatus !== "failed") {
-          checkoutEmailStatus = "skipped";
-          checkoutEmailMessage = payload.emailMessage || checkoutEmailMessage;
-        }
       }
 
       clearCart();
       const params = new URLSearchParams({ order: "success" });
-      params.set("email", checkoutEmailStatus);
-      if (checkoutEmailMessage) {
-        params.set("emailMessage", checkoutEmailMessage);
-      }
       if (userId && cart.length > 0) {
         params.set("rate", cart.map((item) => item.id).join(","));
       }
@@ -177,7 +163,16 @@ export default function CartPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 md:px-6">
+    <>
+      {checkoutLoading ? (
+        <OrderProcessingModal
+          badge="Submitting checkout"
+          title="We are confirming your purchase"
+          description="Your order items are being saved now. This usually takes just a few seconds."
+        />
+      ) : null}
+
+      <div className="mx-auto max-w-7xl px-4 py-10 md:px-6">
       <section className="rounded-[2.25rem] border border-[var(--border)] bg-[linear-gradient(135deg,rgba(244,239,229,0.95),rgba(255,255,255,0.96))] px-6 py-10 shadow-[0_18px_44px_rgba(17,17,17,0.05)]">
         <Link
           href="/products"
@@ -251,6 +246,7 @@ export default function CartPage() {
                     <div className="inline-flex items-center rounded-full border border-[var(--border-strong)] bg-[var(--card-tint)] p-1">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        disabled={checkoutLoading}
                         className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-semibold text-[var(--foreground)]"
                       >
                         -
@@ -258,6 +254,7 @@ export default function CartPage() {
                       <span className="min-w-12 px-4 text-center text-sm font-semibold text-[var(--foreground)]">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        disabled={checkoutLoading}
                         className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-semibold text-[var(--foreground)]"
                       >
                         +
@@ -266,6 +263,7 @@ export default function CartPage() {
 
                     <button
                       onClick={() => removeItem(item.id)}
+                      disabled={checkoutLoading}
                       className="rounded-full border border-[var(--border-strong)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--foreground)]"
                     >
                       Remove
@@ -296,6 +294,7 @@ export default function CartPage() {
                   required
                   value={customer.name}
                   onChange={(e) => setCustomer((current) => ({ ...current, name: e.target.value }))}
+                  disabled={checkoutLoading}
                   className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
                   placeholder="Your full name"
                 />
@@ -309,6 +308,7 @@ export default function CartPage() {
                   minLength={MIN_PHONE_DIGITS}
                   value={customer.phone}
                   onChange={(e) => setCustomer((current) => ({ ...current, phone: e.target.value }))}
+                  disabled={checkoutLoading}
                   className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
                   placeholder="03xxxxxxxxx"
                 />
@@ -321,6 +321,7 @@ export default function CartPage() {
                   required
                   value={customer.email}
                   onChange={(e) => setCustomer((current) => ({ ...current, email: e.target.value }))}
+                  disabled={checkoutLoading}
                   className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
                   placeholder="you@example.com"
                 />
@@ -332,6 +333,7 @@ export default function CartPage() {
                   required
                   value={customer.address}
                   onChange={(e) => setCustomer((current) => ({ ...current, address: e.target.value }))}
+                  disabled={checkoutLoading}
                   className="mt-2 w-full rounded-[1rem] border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--foreground)]"
                   placeholder="Street, city, zip"
                   rows={4}
@@ -366,10 +368,11 @@ export default function CartPage() {
                 disabled={checkoutLoading}
                 className="w-full rounded-full bg-[var(--foreground)] py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[var(--foreground-soft)] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {checkoutLoading ? "Placing order..." : "Checkout"}
+                {checkoutLoading ? "Finalizing your checkout..." : "Checkout"}
               </button>
               <button
                 onClick={clearCart}
+                disabled={checkoutLoading}
                 className="w-full rounded-full border border-[var(--border-strong)] py-3 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--foreground)]"
               >
                 Clear cart
@@ -386,6 +389,7 @@ export default function CartPage() {
           </aside>
         </section>
       )}
-    </div>
+      </div>
+    </>
   );
 }
